@@ -1,0 +1,16 @@
+%% -------------------------------------------------------------------
+%% Copyright (c) 2014 Darach Ennis < darach at gmail dot com > 
+%%
+%% File: hdr_histogram.app.src
+%%
+%% -------------------------------------------------------------------
+
+{application, hdr_histogram,
+ [
+  {description, "High Dynamic Range Histogram Erlang/OTP library"},
+  {vsn, "0.1.0"},
+  {modules, [ hdr_histogram ]},
+  {registered, []},
+  {applications, [ kernel, stdlib ]},
+  {env, []}
+ ]}.
