@@ -128,6 +128,8 @@ ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     hh_ctx_t* ctx = (hh_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hh_ctx_t));
+    enif_keep_resource(ctx);
+
     ctx->data = raw_histogram; 
     ctx->highest_trackable_value = highest_trackable_value;
     ctx->significant_figures = significant_figures;
@@ -661,7 +663,7 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         free(ctx->data);
         ctx->data = NULL;
     }
-    free(ctx_type);
+    enif_release_resource(ctx_type);
 
     return enif_make_atom(env, "ok");
 }
@@ -684,7 +686,10 @@ static int on_upgrade(ErlNifEnv* env, void** priv_data, void** old_priv_data, ER
 
 static void on_unload(ErlNifEnv* env, void *priv_data)
 {
-    free(priv_data);
+    if (priv_data != NULL)
+    {
+       free(priv_data);
+    }
 }
 
 static ErlNifFunc nif_funcs[] =
