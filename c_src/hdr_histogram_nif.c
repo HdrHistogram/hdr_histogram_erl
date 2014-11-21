@@ -206,7 +206,7 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
     hh_ctx_t* ctx;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
-    if(argc != 30 ||
+    if(argc != 3 ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         !enif_get_int64(env, argv[1], &value) ||
         !enif_get_int64(env, argv[2], &expected_interval))
@@ -455,7 +455,7 @@ ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
-    if (argc != 1 ||
+    if (argc != 3 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         !enif_get_int64(env, argv[1], &a) ||
