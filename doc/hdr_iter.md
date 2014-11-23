@@ -168,7 +168,7 @@ Iterate over histogram applying a function to each data point
 each(IteratorRef, EachFun, Initial) -&gt; {ok, Accum} | {error, Reason}
 </code></pre>
 
-<ul class="definitions"><li><code>EachFun = fun(({IteratorType, Data}, Acc) -&gt; any())</code></li><li><code>IteratorType = record | linear | logarithmic | percentile</code></li><li><code>Data = term()</code></li><li><code>Acc = term()</code></li><li><code>IteratorRef = <a href="#type-ref">ref()</a></code></li><li><code>Reason = term()</code></li><li><code>Initial = term()</code></li><li><code>Accum = term()</code></li></ul>
+<ul class="definitions"><li><code>EachFun = fun(({IteratorType, Data}, Acc) -&gt; any())</code></li><li><code>IteratorType = record | linear | logarithmic | percentile</code></li><li><code>Data = [{atom(), term()}]</code></li><li><code>Acc = term()</code></li><li><code>IteratorRef = <a href="#type-ref">ref()</a></code></li><li><code>Reason = term()</code></li><li><code>Initial = term()</code></li><li><code>Accum = term()</code></li></ul>
 
 Iterate over histogram applying a function to each data point accumulating a result
 <a name="open-3"></a>

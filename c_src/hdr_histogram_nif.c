@@ -78,6 +78,32 @@
 #include "erl_nif.h"
 #include "hdr_histogram.h" 
 
+static ERL_NIF_TERM ATOM_OK;
+static ERL_NIF_TERM ATOM_ERROR;
+static ERL_NIF_TERM ATOM_TRUE;
+static ERL_NIF_TERM ATOM_FALSE;
+static ERL_NIF_TERM ATOM_BUCKET_IDX;
+static ERL_NIF_TERM ATOM_COUNT_AT_IDX;
+static ERL_NIF_TERM ATOM_HIGHEST_EQUIV_VAL;
+static ERL_NIF_TERM ATOM_LINEAR;
+static ERL_NIF_TERM ATOM_LINEAR_VAL_UNIT;
+static ERL_NIF_TERM ATOM_LOGARITHMIC;
+static ERL_NIF_TERM ATOM_LOG_BASE;
+static ERL_NIF_TERM ATOM_LOG_VAL_UNIT;
+static ERL_NIF_TERM ATOM_NEXT_VAL_REP_LVL;
+static ERL_NIF_TERM ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV;
+static ERL_NIF_TERM ATOM_PERCENTILE;
+static ERL_NIF_TERM ATOM_PERCENTILE_HALF_TICKS;
+static ERL_NIF_TERM ATOM_PERCENTILE_TO_ITERATE_TO;
+static ERL_NIF_TERM ATOM_RECORD;
+static ERL_NIF_TERM ATOM_SEEN_LAST_VAL;
+static ERL_NIF_TERM ATOM_STEP_COUNT;
+static ERL_NIF_TERM ATOM_SUB_BUCKET_IDX;
+static ERL_NIF_TERM ATOM_TICKS_PER_HALF_DISTANCE;
+static ERL_NIF_TERM ATOM_VAL_AT_IDX;
+static ERL_NIF_TERM ATOM_VAL_FROM_IDX;
+static ERL_NIF_TERM ATOM_VAL_UNITS_FIRST_BUCKET;
+static ERL_NIF_TERM ATOM_VAL_UNITS_PER_BUCKET;
 
 typedef struct
 {
@@ -90,7 +116,7 @@ static inline ERL_NIF_TERM make_error(ErlNifEnv* env, const char* text)
 {
     return enif_make_tuple2(
         env,
-        enif_make_atom(env, "error"),
+        ATOM_ERROR,
         enif_make_atom(env, text)
     );
 }
@@ -138,7 +164,7 @@ ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ERL_NIF_TERM result = enif_make_resource(env, ctx);
     enif_release_resource(ctx);
 
-    return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
+    return enif_make_tuple2(env, ATOM_OK, result);
 }
 
 ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -197,7 +223,7 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         hdr_record_value(ctx->data, value);
     }
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -220,7 +246,7 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
         hdr_record_corrected_value(ctx->data, value, expected_interval);
     }
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -243,7 +269,7 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         hdr_record_values(ctx->data, value, count);
     }
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -467,10 +493,8 @@ ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
    
     if (ctx != NULL)
     {
-        return enif_make_atom(
-            env,
-            hdr_values_are_equivalent(ctx->data, a, b) ? "true" : "false"
-        );
+        return hdr_values_are_equivalent(ctx->data,a,b)
+            ? ATOM_TRUE : ATOM_FALSE;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -537,7 +561,7 @@ ERL_NIF_TERM _hh_print_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
     if (ctx != NULL)
     {
         hdr_percentiles_print(ctx->data, stdout, 5, 1.0, CLASSIC);
-        return enif_make_atom(env, "ok");
+        return ATOM_OK;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -557,7 +581,7 @@ ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (ctx != NULL)
     {
         hdr_percentiles_print(ctx->data, stdout, 5, 1.0, CSV);
-        return enif_make_atom(env, "ok");
+        return ATOM_OK;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -589,7 +613,7 @@ ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         {
             return make_error(env, "bad_file");
         }
-        return enif_make_atom(env, "ok");
+        return ATOM_OK;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -622,7 +646,7 @@ ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         {
             return make_error(env, "bad_file");
         }
-        return enif_make_atom(env, "ok");
+        return ATOM_OK;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -642,7 +666,7 @@ ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (ctx != NULL && ctx->data != NULL)
     {
         hdr_reset(ctx->data);
-        return enif_make_atom(env, "ok");
+        return ATOM_OK;
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -666,7 +690,7 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
     enif_release_resource(ctx_type);
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 #define HDR_ITER_REC 1
@@ -700,13 +724,13 @@ ERL_NIF_TERM parse_opts(
     while(enif_get_list_cell(env, tl, &hd, &tl))
     {
         ERL_NIF_TERM rc = parse_opt(env, hd, acc);
-        if (rc != enif_make_atom(env, "ok"))
+        if (rc != ATOM_OK)
         {
             return rc;
         }
     }
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
@@ -715,7 +739,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
     const ERL_NIF_TERM* opt;
     if (enif_get_tuple(env, e, &arity, &opt) && arity==2)
     {
-        if (opt[0] == enif_make_atom(env, "linear_value_unit"))
+        if (opt[0] == ATOM_LINEAR_VAL_UNIT)
         {
             uint32_t value_size;
             if (enif_get_uint(env, opt[1], &value_size))
@@ -723,7 +747,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
                 o->linear_value_units_per_bucket = value_size;
             }
         }
-        if (opt[0] == enif_make_atom(env, "log_value_unit"))
+        if (opt[0] == ATOM_LOG_VAL_UNIT)
         {
             uint32_t value_size;
             if (enif_get_uint(env, opt[1], &value_size))
@@ -731,7 +755,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
                 o->log_value_units_first_bucket= value_size;
             }
         }
-        if (opt[0] == enif_make_atom(env, "log_base"))
+        if (opt[0] == ATOM_LOG_BASE)
         {
             double log_base;
             if (enif_get_double(env, opt[1], &log_base))
@@ -739,7 +763,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
                 o->log_base = log_base;
             }
         }
-        if (opt[0] == enif_make_atom(env, "percentile_half_ticks"))
+        if (opt[0] == ATOM_PERCENTILE_HALF_TICKS)
         {
             uint32_t ticks_per_half;
             if (enif_get_uint(env, opt[1], &ticks_per_half))
@@ -749,7 +773,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
         }
     }
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -781,7 +805,7 @@ ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ERL_NIF_TERM result = enif_make_resource(env, ctx);
     enif_release_resource(ctx);
 
-    return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
+    return enif_make_tuple2(env, ATOM_OK, result);
 }
 
 ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -868,7 +892,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ctx->opts = opts;
     ctx->iter = it;
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -901,28 +925,28 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                 int64_t cto = iter.count_to_index;
                 int64_t heq = iter.highest_equivalent_value;
                 return enif_make_tuple2(env,
-                  enif_make_atom(env, "record"),
+                  ATOM_RECORD,
                   enif_make_list(env, 7,
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"bucket_index"),
+                          ATOM_BUCKET_IDX,
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"sub_bucket_index"),
+                          ATOM_SUB_BUCKET_IDX,
                           enif_make_long(env,sdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_from_index"),
+                          ATOM_VAL_FROM_IDX,
                           enif_make_long(env,val)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_at_index"),
+                          ATOM_VAL_AT_IDX,
                           enif_make_long(env,cat)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"count_at_index"),
+                          ATOM_COUNT_AT_IDX,
                           enif_make_long(env,cto)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"highest_equivalent_value"),
+                          ATOM_HIGHEST_EQUIV_VAL,
                           enif_make_long(env,heq)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"step_count"),
+                          ATOM_STEP_COUNT,
                           enif_make_long(env,stp))));
             }
         }
@@ -949,37 +973,37 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                 int64_t cto = iter.count_to_index;
                 int64_t heq = iter.highest_equivalent_value;
                 return enif_make_tuple2(env,
-                  enif_make_atom(env, "linear"),
+                  ATOM_LINEAR,
                   enif_make_list(env, 10,
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"bucket_index"),
+                          ATOM_BUCKET_IDX,
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"sub_bucket_index"),
+                          ATOM_SUB_BUCKET_IDX,
                           enif_make_long(env,sdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_from_index"),
+                          ATOM_VAL_FROM_IDX,
                           enif_make_long(env,val)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_at_index"),
+                          ATOM_VAL_AT_IDX,
                           enif_make_long(env,cat)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"count_at_index"),
+                          ATOM_COUNT_AT_IDX,
                           enif_make_long(env,cto)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"highest_equivalent_value"),
+                          ATOM_HIGHEST_EQUIV_VAL,
                           enif_make_long(env,heq)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_units_per_bucket"),
+                          ATOM_VAL_UNITS_PER_BUCKET,
                           enif_make_int(env,vub)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"step_count"),
+                          ATOM_STEP_COUNT,
                           enif_make_long(env,stp)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"next_value_reporting_level"),
+                          ATOM_NEXT_VAL_REP_LVL,
                           enif_make_long(env,nvl)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"next_value_reporting_level_lowest_equiv"),
+                          ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV,
                           enif_make_long(env,nve))));
             }
         }
@@ -1007,40 +1031,40 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                 int64_t cto = iter.count_to_index;
                 int64_t heq = iter.highest_equivalent_value;
                 return enif_make_tuple2(env,
-                  enif_make_atom(env, "logarithmic"),
+                  ATOM_LOGARITHMIC,
                   enif_make_list(env, 11,
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"bucket_index"),
+                          ATOM_BUCKET_IDX,
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"sub_bucket_index"),
+                          ATOM_SUB_BUCKET_IDX,
                           enif_make_long(env,sdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_from_index"),
+                          ATOM_VAL_FROM_IDX,
                           enif_make_long(env,val)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_at_index"),
+                          ATOM_VAL_AT_IDX,
                           enif_make_long(env,cat)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"count_at_index"),
+                          ATOM_COUNT_AT_IDX,
                           enif_make_long(env,cto)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"highest_equivalent_value"),
+                          ATOM_HIGHEST_EQUIV_VAL,
                           enif_make_long(env,heq)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_units_first_bucket"),
+                          ATOM_VAL_UNITS_FIRST_BUCKET,
                           enif_make_int(env,vfb)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"step_count"),
+                          ATOM_STEP_COUNT,
                           enif_make_long(env,stp)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"log_base"),
+                          ATOM_LOG_BASE,
                           enif_make_double(env,lgb)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"next_value_reporting_level"),
+                          ATOM_NEXT_VAL_REP_LVL,
                           enif_make_long(env,nvl)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"next_value_reporting_level_lowest_equiv"),
+                          ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV,
                           enif_make_long(env,nve))));
             }
         }
@@ -1067,37 +1091,37 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                 int64_t cto = iter.count_to_index;
                 int64_t heq = iter.highest_equivalent_value;
                 return enif_make_tuple2(env,
-                  enif_make_atom(env, "percentile"),
+                  ATOM_PERCENTILE,
                   enif_make_list(env, 10,
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"bucket_index"),
+                          ATOM_BUCKET_IDX,
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"sub_bucket_index"),
+                          ATOM_SUB_BUCKET_IDX,
                           enif_make_long(env,sdx)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_from_index"),
+                          ATOM_VAL_FROM_IDX,
                           enif_make_long(env,val)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"value_at_index"),
+                          ATOM_VAL_AT_IDX,
                           enif_make_long(env,cat)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"count_at_index"),
+                          ATOM_COUNT_AT_IDX,
                           enif_make_long(env,cto)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"highest_equivalent_value"),
+                          ATOM_HIGHEST_EQUIV_VAL,
                           enif_make_long(env,heq)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"seen_last_value"),
+                          ATOM_SEEN_LAST_VAL,
                           enif_make_atom(env,slv ? "true" : "false")),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"percentile_to_iterate_to"),
+                          ATOM_PERCENTILE_TO_ITERATE_TO,
                           enif_make_double(env,pti)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"percentile"),
+                          ATOM_PERCENTILE,
                           enif_make_double(env,pct)),
                       enif_make_tuple2(env,
-                          enif_make_atom(env,"ticks_per_half_distance"),
+                          ATOM_TICKS_PER_HALF_DISTANCE,
                           enif_make_int(env,tph))));
             }
         }
@@ -1105,7 +1129,7 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
     return enif_make_tuple2(
         env,
-        enif_make_atom(env,"false"),
+        ATOM_FALSE,
         enif_make_tuple(env,0)
     );
 }
@@ -1130,15 +1154,42 @@ ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
     enif_release_resource(ctx_type);
 
-    return enif_make_atom(env, "ok");
+    return ATOM_OK;
 }
 
 static void init(ErlNifEnv* env)
 {
+    ATOM_OK = enif_make_atom(env, "ok");
+    ATOM_ERROR = enif_make_atom(env, "error");
+    ATOM_TRUE = enif_make_atom(env, "true");
+    ATOM_FALSE = enif_make_atom(env, "false");
+    ATOM_BUCKET_IDX = enif_make_atom(env, "bucket_index");
+    ATOM_COUNT_AT_IDX = enif_make_atom(env, "count_at_index");
+    ATOM_HIGHEST_EQUIV_VAL = enif_make_atom(env, "highest_equivalent_value");
+    ATOM_LINEAR = enif_make_atom(env, "linear");
+    ATOM_LINEAR_VAL_UNIT = enif_make_atom(env, "linear_value_unit");
+    ATOM_LOGARITHMIC = enif_make_atom(env, "logarithmic");
+    ATOM_LOG_BASE = enif_make_atom(env, "log_base");
+    ATOM_LOG_VAL_UNIT = enif_make_atom(env, "log_value_unit");
+    ATOM_NEXT_VAL_REP_LVL = enif_make_atom(env, "next_value_reporting_level");
+    ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV = enif_make_atom(env, "next_value_reporting_level_lowest_equiv");
+    ATOM_PERCENTILE = enif_make_atom(env, "percentile");
+    ATOM_PERCENTILE_HALF_TICKS = enif_make_atom(env, "percentile_half_ticks");
+    ATOM_PERCENTILE_TO_ITERATE_TO = enif_make_atom(env, "percentile_to_iterate_to");
+    ATOM_RECORD = enif_make_atom(env, "record");
+    ATOM_SEEN_LAST_VAL = enif_make_atom(env, "seen_last_value");
+    ATOM_STEP_COUNT = enif_make_atom(env, "step_count");
+    ATOM_SUB_BUCKET_IDX = enif_make_atom(env, "sub_bucket_index");
+    ATOM_TICKS_PER_HALF_DISTANCE = enif_make_atom(env, "ticks_per_half_distance");
+    ATOM_VAL_AT_IDX = enif_make_atom(env, "value_at_index");
+    ATOM_VAL_FROM_IDX = enif_make_atom(env, "value_from_index");
+    ATOM_VAL_UNITS_FIRST_BUCKET = enif_make_atom(env, "value_units_first_bucket");
+    ATOM_VAL_UNITS_PER_BUCKET = enif_make_atom(env, "value_units_per_bucket");
 }
 
 static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 {
+    init(env);
     *priv_data = (hh_ctx_t*)malloc(sizeof(hh_ctx_t));
     return 0;
 }
