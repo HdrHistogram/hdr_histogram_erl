@@ -22,8 +22,7 @@ dialyze:
         | grep -v -f ./dialyzer.ignore-warnings
 
 test: build dialyze
-	@mkdir -p .eunit
-	$(REBAR) skip_deps=true eunit ct
+	rebar skip_deps=true ct
 
 clean:
 	$(REBAR) clean

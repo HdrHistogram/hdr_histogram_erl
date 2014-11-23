@@ -78,6 +78,14 @@
 #include "erl_nif.h"
 #include "hdr_histogram.h" 
 
+
+typedef struct
+{
+    int64_t highest_trackable_value;
+    int significant_figures;
+    hdr_histogram_t* data;
+} hh_ctx_t;
+
 static inline ERL_NIF_TERM make_error(ErlNifEnv* env, const char* text)
 {
     return enif_make_tuple2(
@@ -92,13 +100,6 @@ static inline double round_to_significant_figures(double value, int figures)
     double factor = pow(10.0, figures - ceil(log10(fabs(value))));
     return round(value * factor) / factor;  
 }
-
-typedef struct
-{
-    int64_t highest_trackable_value;
-    int significant_figures;
-    hdr_histogram_t* data;
-} hh_ctx_t;
 
 ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -668,6 +669,470 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_atom(env, "ok");
 }
 
+#define HDR_ITER_REC 1
+#define HDR_ITER_LIN 2
+#define HDR_ITER_LOG 4
+#define HDR_ITER_PCT 8
+
+typedef struct
+{
+    int linear_value_units_per_bucket;
+    int log_value_units_first_bucket;
+    double log_base;
+    int percentile_ticks_per_half_distance;
+} hi_opts_t;
+
+typedef struct
+{
+    uint32_t type;
+    hi_opts_t* opts;
+    void* iter;
+} hi_ctx_t;
+
+ERL_NIF_TERM parse_opts(
+    ErlNifEnv* env,
+    ERL_NIF_TERM list,
+    hi_opts_t* acc,
+    ERL_NIF_TERM(*parse_opt)(ErlNifEnv*, ERL_NIF_TERM, void* acc)
+)
+{
+    ERL_NIF_TERM hd, tl = list;
+    while(enif_get_list_cell(env, tl, &hd, &tl))
+    {
+        ERL_NIF_TERM rc = parse_opt(env, hd, acc);
+        if (rc != enif_make_atom(env, "ok"))
+        {
+            return rc;
+        }
+    }
+
+    return enif_make_atom(env, "ok");
+}
+
+ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
+{
+    int arity;
+    const ERL_NIF_TERM* opt;
+    if (enif_get_tuple(env, e, &arity, &opt) && arity==2)
+    {
+        if (opt[0] == enif_make_atom(env, "linear_value_unit"))
+        {
+            uint32_t value_size;
+            if (enif_get_uint(env, opt[1], &value_size))
+            {
+                o->linear_value_units_per_bucket = value_size;
+            }
+        }
+        if (opt[0] == enif_make_atom(env, "log_value_unit"))
+        {
+            uint32_t value_size;
+            if (enif_get_uint(env, opt[1], &value_size))
+            {
+                o->log_value_units_first_bucket= value_size;
+            }
+        }
+        if (opt[0] == enif_make_atom(env, "log_base"))
+        {
+            double log_base;
+            if (enif_get_double(env, opt[1], &log_base))
+            {
+                o->log_base = log_base;
+            }
+        }
+        if (opt[0] == enif_make_atom(env, "percentile_half_ticks"))
+        {
+            uint32_t ticks_per_half;
+            if (enif_get_uint(env, opt[1], &ticks_per_half))
+            {
+                o->percentile_ticks_per_half_distance = ticks_per_half;
+            }
+        }
+    }
+
+    return enif_make_atom(env, "ok");
+}
+
+ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    uint32_t iterator_type;
+
+    if (argc != 1 ||
+        !enif_get_uint(env, argv[0], &iterator_type))
+    {
+        enif_make_badarg(env);
+    }
+
+    if (iterator_type != HDR_ITER_REC &&
+        iterator_type != HDR_ITER_LIN &&
+        iterator_type != HDR_ITER_LOG &&
+        iterator_type != HDR_ITER_PCT)
+    {
+        return make_error(env, "bad_iterator_type");
+    }
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    hi_ctx_t* ctx = (hi_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hi_ctx_t));
+    enif_keep_resource(ctx);
+
+    ctx->type = iterator_type;
+    ctx->opts = NULL;
+    ctx->iter = NULL;
+
+    ERL_NIF_TERM result = enif_make_resource(env, ctx);
+    enif_release_resource(ctx);
+
+    return enif_make_tuple2(env, enif_make_atom(env, "ok"), result);
+}
+
+ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hi_ctx_t* ctx;
+    hh_ctx_t* hdr;
+    hi_opts_t* opts;
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    if (argc != 3 ||
+        ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        !enif_get_resource(env, argv[1], ctx_type, (void **)&hdr) ||
+        !enif_is_list(env, argv[2]))
+    {
+        enif_make_badarg(env);
+    }
+
+    opts = malloc(sizeof(hi_opts_t));
+    parse_opts(env, argv[2], opts, (void *)parse_opt);
+    uint32_t iterator_type = ctx->type;
+
+    void* it = NULL;
+
+    if (iterator_type == HDR_ITER_REC)
+    {
+        struct hdr_recorded_iter * iter =
+            malloc(sizeof(struct hdr_recorded_iter));
+        hdr_recorded_iter_init(iter, hdr->data);
+        it = iter;
+    }
+
+    if (iterator_type == HDR_ITER_LIN)
+    {
+        if (opts->linear_value_units_per_bucket <= 0)
+        {
+            return make_error(env, "bad_linear_value_unit");
+        }
+        struct hdr_linear_iter * iter =
+            malloc(sizeof(struct hdr_linear_iter));
+        hdr_linear_iter_init(
+            iter,
+            hdr->data,
+            opts->linear_value_units_per_bucket);
+        it = iter;
+    }
+
+    if (iterator_type == HDR_ITER_LOG)
+    {
+        if (opts->log_value_units_first_bucket <= 0)
+        {
+            return make_error(env, "bad_log_value_unit");
+        }
+        if (opts->log_base <= 0)
+        {
+            return make_error(env, "bad_log_base");
+        }
+        struct hdr_log_iter * iter =
+            malloc(sizeof(struct hdr_log_iter));
+        hdr_log_iter_init(
+            iter,
+            hdr->data,
+            opts->log_value_units_first_bucket,
+            opts->log_base);
+        it = iter;
+    }
+
+    if (iterator_type == HDR_ITER_PCT)
+    {
+        if (opts->percentile_ticks_per_half_distance <= 0)
+        {
+            return make_error(env, "bad_percentile_half_ticks");
+        }
+        struct hdr_percentile_iter * iter =
+            malloc(sizeof(struct hdr_percentile_iter));
+        hdr_percentile_iter_init(
+            iter,
+            hdr->data,
+            opts->percentile_ticks_per_half_distance);
+        it = iter;
+    }
+
+    ctx->type = iterator_type;
+    ctx->opts = opts;
+    ctx->iter = it;
+
+    return enif_make_atom(env, "ok");
+}
+
+ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hi_ctx_t* ctx;
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    if (argc != 1 ||
+        ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    {
+        return enif_make_badarg(env);
+    }
+
+    if (ctx != NULL && ctx->type == HDR_ITER_REC)
+    {
+        // skip until first non-zero index
+        bool has_next = false;
+        while (ctx->iter != NULL && (has_next = hdr_recorded_iter_next(ctx->iter)))
+        {
+            struct hdr_recorded_iter* x = ((struct hdr_recorded_iter*)ctx->iter);
+            struct hdr_iter iter = x->iter;
+            if (0 != iter.count_at_index)
+            {
+                int64_t stp = x->count_added_in_this_iteration_step;
+                int32_t bdx = iter.bucket_index;
+                int64_t sdx = iter.sub_bucket_index;
+                int64_t val = iter.value_from_index;
+                int64_t cat = iter.count_at_index;
+                int64_t cto = iter.count_to_index;
+                int64_t heq = iter.highest_equivalent_value;
+                return enif_make_tuple2(env,
+                  enif_make_atom(env, "record"),
+                  enif_make_list(env, 7,
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"bucket_index"),
+                          enif_make_int(env,bdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"sub_bucket_index"),
+                          enif_make_long(env,sdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_from_index"),
+                          enif_make_long(env,val)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_at_index"),
+                          enif_make_long(env,cat)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"count_at_index"),
+                          enif_make_long(env,cto)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"highest_equivalent_value"),
+                          enif_make_long(env,heq)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"step_count"),
+                          enif_make_long(env,stp))));
+            }
+        }
+    }
+
+    if (ctx != NULL && ctx->type == HDR_ITER_LIN)
+    {
+        // skip until first non-zero index
+        bool has_next = false;
+        while (ctx->iter != NULL && (has_next = hdr_linear_iter_next(ctx->iter)))
+        {
+            struct hdr_linear_iter* x = ((struct hdr_linear_iter*)ctx->iter);
+            struct hdr_iter iter = x->iter;
+            if (0 != iter.count_at_index)
+            {
+                int64_t stp = x->count_added_in_this_iteration_step;
+                int32_t vub = x->value_units_per_bucket;
+                int64_t nvl = x->next_value_reporting_level;
+                int64_t nve = x->next_value_reporting_level_lowest_equivalent;
+                int32_t bdx = iter.bucket_index;
+                int64_t sdx = iter.sub_bucket_index;
+                int64_t val = iter.value_from_index;
+                int64_t cat = iter.count_at_index;
+                int64_t cto = iter.count_to_index;
+                int64_t heq = iter.highest_equivalent_value;
+                return enif_make_tuple2(env,
+                  enif_make_atom(env, "linear"),
+                  enif_make_list(env, 10,
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"bucket_index"),
+                          enif_make_int(env,bdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"sub_bucket_index"),
+                          enif_make_long(env,sdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_from_index"),
+                          enif_make_long(env,val)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_at_index"),
+                          enif_make_long(env,cat)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"count_at_index"),
+                          enif_make_long(env,cto)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"highest_equivalent_value"),
+                          enif_make_long(env,heq)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_units_per_bucket"),
+                          enif_make_int(env,vub)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"step_count"),
+                          enif_make_long(env,stp)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"next_value_reporting_level"),
+                          enif_make_long(env,nvl)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"next_value_reporting_level_lowest_equiv"),
+                          enif_make_long(env,nve))));
+            }
+        }
+    }
+
+    if (ctx != NULL && ctx->type == HDR_ITER_LOG)
+    {
+        // skip until first non-zero index
+        bool has_next = false;
+        while (ctx->iter != NULL && (has_next = hdr_log_iter_next(ctx->iter)))
+        {
+            struct hdr_log_iter* x = (struct hdr_log_iter*)ctx->iter;
+            struct hdr_iter iter = x->iter;
+            if (0 != iter.count_at_index)
+            {
+                int64_t stp = x->count_added_in_this_iteration_step;
+                int32_t vfb = x->value_units_first_bucket;
+                double lgb = x->log_base;
+                int64_t nvl = x->next_value_reporting_level;
+                int64_t nve = x->next_value_reporting_level_lowest_equivalent;
+                int32_t bdx = iter.bucket_index;
+                int64_t sdx = iter.sub_bucket_index;
+                int64_t val = iter.value_from_index;
+                int64_t cat = iter.count_at_index;
+                int64_t cto = iter.count_to_index;
+                int64_t heq = iter.highest_equivalent_value;
+                return enif_make_tuple2(env,
+                  enif_make_atom(env, "logarithmic"),
+                  enif_make_list(env, 11,
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"bucket_index"),
+                          enif_make_int(env,bdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"sub_bucket_index"),
+                          enif_make_long(env,sdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_from_index"),
+                          enif_make_long(env,val)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_at_index"),
+                          enif_make_long(env,cat)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"count_at_index"),
+                          enif_make_long(env,cto)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"highest_equivalent_value"),
+                          enif_make_long(env,heq)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_units_first_bucket"),
+                          enif_make_int(env,vfb)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"step_count"),
+                          enif_make_long(env,stp)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"log_base"),
+                          enif_make_double(env,lgb)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"next_value_reporting_level"),
+                          enif_make_long(env,nvl)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"next_value_reporting_level_lowest_equiv"),
+                          enif_make_long(env,nve))));
+            }
+        }
+    }
+
+    if (ctx != NULL && ctx->type == HDR_ITER_PCT)
+    {
+        // skip until first non-zero index
+        bool has_next = false;
+        while (ctx->iter != NULL && (has_next = hdr_percentile_iter_next(ctx->iter)))
+        {
+            struct hdr_percentile_iter* x = (struct hdr_percentile_iter*)ctx->iter;
+            struct hdr_iter iter = x->iter;
+            if (0 != iter.count_at_index)
+            {
+                bool slv = x->seen_last_value;
+                int32_t tph = x->ticks_per_half_distance;
+                double pti = x->percentile_to_iterate_to;
+                double pct = x->percentile;
+                int32_t bdx = iter.bucket_index;
+                int64_t sdx = iter.sub_bucket_index;
+                int64_t val = iter.value_from_index;
+                int64_t cat = iter.count_at_index;
+                int64_t cto = iter.count_to_index;
+                int64_t heq = iter.highest_equivalent_value;
+                return enif_make_tuple2(env,
+                  enif_make_atom(env, "percentile"),
+                  enif_make_list(env, 10,
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"bucket_index"),
+                          enif_make_int(env,bdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"sub_bucket_index"),
+                          enif_make_long(env,sdx)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_from_index"),
+                          enif_make_long(env,val)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"value_at_index"),
+                          enif_make_long(env,cat)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"count_at_index"),
+                          enif_make_long(env,cto)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"highest_equivalent_value"),
+                          enif_make_long(env,heq)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"seen_last_value"),
+                          enif_make_atom(env,slv ? "true" : "false")),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"percentile_to_iterate_to"),
+                          enif_make_double(env,pti)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"percentile"),
+                          enif_make_double(env,pct)),
+                      enif_make_tuple2(env,
+                          enif_make_atom(env,"ticks_per_half_distance"),
+                          enif_make_int(env,tph))));
+            }
+        }
+    }
+
+    return enif_make_tuple2(
+        env,
+        enif_make_atom(env,"false"),
+        enif_make_tuple(env,0)
+    );
+}
+
+ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hi_ctx_t* ctx;
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    if (ctx_type != NULL &&
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    {
+        return enif_make_badarg(env);
+    }
+
+    if (ctx != NULL && ctx->opts != NULL)
+    {
+        free(ctx->opts);
+        free(ctx->iter);
+        ctx->opts = NULL;
+        ctx->iter = NULL;
+    }
+    enif_release_resource(ctx_type);
+
+    return enif_make_atom(env, "ok");
+}
+
 static void init(ErlNifEnv* env)
 {
 }
@@ -694,6 +1159,7 @@ static void on_unload(ErlNifEnv* env, void *priv_data)
 
 static ErlNifFunc nif_funcs[] =
 {
+    // HDR histogram core
     {"open", 2, _hh_open},
     {"get_memory_size", 1, _hh_get_memory_size},
     {"get_total_count", 1, _hh_get_total_count},
@@ -715,7 +1181,12 @@ static ErlNifFunc nif_funcs[] =
     {"log_classic", 2, _hh_log_classic},
     {"log_csv", 2, _hh_log_csv},
     {"reset", 1, _hh_reset},
-    {"close", 1, _hh_close}
+    {"close", 1, _hh_close},
+    // HDR histogram iteration facility
+    {"iter_open", 1, _hi_open},
+    {"iter_init", 3, _hi_init},
+    {"iter_next", 1, _hi_next},
+    {"iter_close", 1, _hi_close}
 };
 
 ERL_NIF_INIT(hdr_histogram, nif_funcs, &on_load, NULL, &on_upgrade, &on_unload)

@@ -19,12 +19,21 @@
 -export([t_hdr_max_value/1]).
 -export([t_hdr_min_value/1]).
 -export([t_hdr_percentiles/1]).
+-export([t_hdr_reset/1]).
+-export([t_hdr_close/1]).
+-export([t_iter_recorded/1]).
+-export([t_iter_linear/1]).
+-export([t_iter_logarithmic/1]).
+-export([t_iter_percentile/1]).
+
+-export([load_histograms/0]).
 
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
     [
      {group, hdr}
+     , {group, iter}
     ].
 
 groups() ->
@@ -35,6 +44,14 @@ groups() ->
       , t_hdr_max_value
       , t_hdr_min_value
       , t_hdr_percentiles
+      , t_hdr_reset
+      , t_hdr_close
+    ]},
+     {iter, [], [
+        t_iter_recorded
+      , t_iter_linear
+      , t_iter_logarithmic
+      , t_iter_percentile
     ]}].
 
 suite() ->
@@ -50,9 +67,14 @@ group(_GroupName) ->
     [].
 
 init_per_group(_GroupName, Config) ->
-    Config.
+    {Raw,Cor} = load_histograms(),
+    [{raw,Raw},{cor,Cor}|Config].
 
 end_per_group(_GroupName, Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+    hdr_histogram:close(Raw),
+    hdr_histogram:close(Cor),
     Config.
 
 init_per_testcase(_TestCase, Config) ->
@@ -64,6 +86,7 @@ end_per_testcase(_TestCase, Config) ->
 t_hdr_create(_Config) ->
     {ok,R} = hdr_histogram:open(36000000, 4),
     1704008 = hdr_histogram:get_memory_size(R),
+    hdr_histogram:close(R),
     ok.
 
 t_hdr_invalid_sigfig(_Config) ->
@@ -71,28 +94,32 @@ t_hdr_invalid_sigfig(_Config) ->
     {error,bad_significant_factor} = (catch hdr_histogram:open(36000000, 6)),
     ok.
 
-t_hdr_total_count(_Config) ->
-    {Raw,Cor} = load_histograms(),
+t_hdr_total_count(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
     10001 = hdr_histogram:get_total_count(Raw),
     20000 = hdr_histogram:get_total_count(Cor),
     ok.
 
-t_hdr_max_value(_Config) ->
-    {Raw,Cor} = load_histograms(),
+t_hdr_max_value(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
     RawMax = hdr_histogram:max(Raw),
     CorMax = hdr_histogram:max(Cor),
     hdr_histogram:same(Raw,100000000,RawMax),
     hdr_histogram:same(Cor,100000000,CorMax),
     ok.
 
-t_hdr_min_value(_Config) ->
-    {Raw,Cor} = load_histograms(),
+t_hdr_min_value(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
     1000 = hdr_histogram:min(Raw),
     1000 = hdr_histogram:min(Cor),
     ok.
 
-t_hdr_percentiles(_Config) ->
-    {Raw,Cor} = load_histograms(),
+t_hdr_percentiles(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
     cmp(1.0e3 , hdr_histogram:percentile(Raw, 30.0), 0.001),
     cmp(1.0e3 , hdr_histogram:percentile(Raw, 99.0), 0.001),
     cmp(1.0e3 , hdr_histogram:percentile(Raw, 99.99), 0.001),
@@ -107,6 +134,110 @@ t_hdr_percentiles(_Config) ->
     cmp(1.0e8 , hdr_histogram:percentile(Cor, 100.0), 0.001),
     ok.
 
+t_hdr_reset(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+    hdr_histogram:reset(Raw),
+    hdr_histogram:reset(Cor),
+    0 = hdr_histogram:get_total_count(Raw),
+    0 = hdr_histogram:get_total_count(Cor),
+    0.0 = hdr_histogram:percentile(Raw, 99.0),
+    0.0 = hdr_histogram:percentile(Cor, 99.0),
+    ok.
+
+t_hdr_close(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+    hdr_histogram:close(Raw),
+    hdr_histogram:close(Cor),
+    %% double close is harmless
+    ok.
+
+t_iter_recorded(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+
+  {ok,RawIter} = hdr_iter:open(record, Raw, []), 
+  RawStepCounts = hdr_iter:each(RawIter, step_counts(), []),
+  hdr_iter:close(RawIter),
+
+  {ok,CorIter} = hdr_iter:open(record, Cor, []), 
+  CorStepCounts = hdr_iter:each(CorIter, step_counts(), []),
+  hdr_iter:close(CorIter),
+
+  [10000,1] = RawStepCounts,
+  [10000|X] = CorStepCounts,
+  10000 = lists:sum(X),
+
+  10001 = lists:sum(RawStepCounts),
+  20000 = lists:sum(CorStepCounts),
+  ok.
+
+t_iter_linear(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+
+  {ok,RawIter} = hdr_iter:open(linear, Raw, [{linear_value_unit,10000}]), 
+  RawStepCounts = hdr_iter:each(RawIter,step_counts(), []),
+  hdr_iter:close(RawIter),
+
+  {ok,CorIter} = hdr_iter:open(linear, Cor, [{linear_value_unit,10000}]), 
+  CorStepCounts = hdr_iter:each(CorIter,step_counts(), []),
+  hdr_iter:close(CorIter),
+
+  1 = lists:sum(RawStepCounts),
+  20000 = lists:sum(CorStepCounts),
+  ok.
+
+t_iter_logarithmic(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+
+  {ok,RawIter} = hdr_iter:open(logarithmic, Raw, [{log_value_unit,100},{log_base,10.0}]), 
+  RawStepCounts = hdr_iter:each(RawIter,accum_steps(), 0),
+  hdr_iter:close(RawIter),
+
+  {ok,CorIter} = hdr_iter:open(logarithmic, Cor, [{log_value_unit,100},{log_base,10}]), 
+  CorStepCounts = hdr_iter:each(CorIter,accum_steps(), 0),
+  hdr_iter:close(CorIter),
+
+  10001 = RawStepCounts,
+  20000 = CorStepCounts,
+  ok.
+
+t_iter_percentile(Config) ->
+    Raw = ?config(raw,Config),
+    Cor = ?config(cor,Config),
+
+  {ok,RawIter} = hdr_iter:open(percentile, Raw, [{percentile_half_ticks,20}]), 
+  RawStepCounts = hdr_iter:each(RawIter,count(), 0),
+  hdr_iter:close(RawIter),
+
+  {ok,CorIter} = hdr_iter:open(percentile, Cor, [{percentile_half_ticks,20}]), 
+  CorStepCounts = hdr_iter:each(CorIter,count(), 0),
+  hdr_iter:close(CorIter),
+
+  270 = RawStepCounts,
+  238 = CorStepCounts,
+  ok.
+
+step_counts() ->
+    fun({_,Attrs},Acc) ->
+        {step_count,X}=lists:keyfind(step_count,1,Attrs),
+        Acc ++ [X]
+    end.
+
+accum_steps() ->
+    fun({_,Attrs},Acc) ->
+        {step_count,X}=lists:keyfind(step_count,1,Attrs),
+        Acc + X
+    end.
+
+count() ->
+    fun({_,_},Acc) ->
+        Acc + 1
+    end.
+
 load_histograms() ->
     {ok,Raw} = hdr_histogram:open(3600 * 1000 * 1000, 3),
     {ok,Cor} = hdr_histogram:open(3600 * 1000 * 1000, 3),
@@ -120,6 +251,7 @@ load(N,{Raw,Cor}) ->
     ok = hdr_histogram:record(Raw, 1000),
     ok = hdr_histogram:record_corrected(Cor,1000,10000),
     load(N-1,{Raw,Cor}).
+
 
 cmp(L1,L2,D) ->
     case erlang:abs(L1-L2) < D of

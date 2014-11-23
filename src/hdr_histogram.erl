@@ -1,6 +1,6 @@
 %% @author Darach Ennis <darach@gmail.com>
 %% @copyright 2014 Darach Ennis
-%% @version 0.1.0
+%% @version 0.2.0
 %%
 %% @doc
 %% 
@@ -95,6 +95,10 @@
 -export([log/3]).
 -export([reset/1]).
 -export([close/1]).
+-export([iter_open/1]).
+-export([iter_init/3]).
+-export([iter_next/1]).
+-export([iter_close/1]).
 
 -on_load(init/0).
 
@@ -283,4 +287,19 @@ reset(_Ref) ->
     Ref :: ref().
 %% @doc Close this HDR histogram instance and free any system resources
 close(_Ref) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+%% @private
+iter_open(_) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+iter_init(_,_,_) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+%% @private
+iter_next(_) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+%% @private
+iter_close(_) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
