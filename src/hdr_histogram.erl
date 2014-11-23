@@ -293,6 +293,7 @@ close(_Ref) ->
 iter_open(_) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
+%% @private
 iter_init(_,_,_) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
