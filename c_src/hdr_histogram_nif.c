@@ -824,7 +824,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         enif_make_badarg(env);
     }
 
-    opts = malloc(sizeof(hi_opts_t));
+    opts = (hi_opts_t *)enif_alloc(sizeof(hi_opts_t));
     parse_opts(env, argv[2], opts, (void *)parse_opt);
     uint32_t iterator_type = ctx->type;
 
@@ -833,7 +833,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (iterator_type == HDR_ITER_REC)
     {
         struct hdr_recorded_iter * iter =
-            malloc(sizeof(struct hdr_recorded_iter));
+            enif_alloc(sizeof(struct hdr_recorded_iter));
         hdr_recorded_iter_init(iter, hdr->data);
         it = iter;
     }
@@ -845,7 +845,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
             return make_error(env, "bad_linear_value_unit");
         }
         struct hdr_linear_iter * iter =
-            malloc(sizeof(struct hdr_linear_iter));
+            enif_alloc(sizeof(struct hdr_linear_iter));
         hdr_linear_iter_init(
             iter,
             hdr->data,
@@ -864,7 +864,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
             return make_error(env, "bad_log_base");
         }
         struct hdr_log_iter * iter =
-            malloc(sizeof(struct hdr_log_iter));
+            enif_alloc(sizeof(struct hdr_log_iter));
         hdr_log_iter_init(
             iter,
             hdr->data,
@@ -880,7 +880,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
             return make_error(env, "bad_percentile_half_ticks");
         }
         struct hdr_percentile_iter * iter =
-            malloc(sizeof(struct hdr_percentile_iter));
+            enif_alloc(sizeof(struct hdr_percentile_iter));
         hdr_percentile_iter_init(
             iter,
             hdr->data,
@@ -1147,8 +1147,8 @@ ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
     if (ctx != NULL && ctx->opts != NULL)
     {
-        free(ctx->opts);
-        free(ctx->iter);
+        enif_free(ctx->opts);
+        enif_free(ctx->iter);
         ctx->opts = NULL;
         ctx->iter = NULL;
     }

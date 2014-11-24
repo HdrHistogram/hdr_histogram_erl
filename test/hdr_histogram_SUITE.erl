@@ -197,7 +197,7 @@ t_iter_logarithmic(Config) ->
   RawStepCounts = hdr_iter:each(RawIter,accum_steps(), 0),
   hdr_iter:close(RawIter),
 
-  {ok,CorIter} = hdr_iter:open(logarithmic, Cor, [{log_value_unit,100},{log_base,10}]), 
+  {ok,CorIter} = hdr_iter:open(logarithmic, Cor, [{log_value_unit,100},{log_base,10.0}]), 
   CorStepCounts = hdr_iter:each(CorIter,accum_steps(), 0),
   hdr_iter:close(CorIter),
 
