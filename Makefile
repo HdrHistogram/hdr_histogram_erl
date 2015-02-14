@@ -1,8 +1,8 @@
-REBAR:=rebar
+REBAR:=./rebar
 
 .PHONY: all erl test clean doc 
 
-all: doc
+all: test
 
 build:
 	$(REBAR) get-deps compile
@@ -21,7 +21,7 @@ dialyze:
         -r ebin --src src \
         | grep -v -f ./dialyzer.ignore-warnings
 
-test: build dialyze
+test: build
 	rebar skip_deps=true ct
 
 clean:

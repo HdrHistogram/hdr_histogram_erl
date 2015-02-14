@@ -1,0 +1,20 @@
+# File: .travis.yml
+before_script:
+- sudo apt-get update
+- sudo apt-get install python
+- sudo apt-get install python-setuptools
+- sudo apt-get install python-dev
+- curl -o trevor https://raw.githubusercontent.com/darach/trevor/master/trevor
+- chmod +x ./trevor
+- python ./trevor travis
+
+language: erlang
+otp_release:
+  - 17.3
+  - 17.1
+  - 17.0
+  - R16B03
+  - R16B02
+script: make
+
+# EOF
