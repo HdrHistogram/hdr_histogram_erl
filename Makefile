@@ -22,7 +22,7 @@ dialyze:
         | grep -v -f ./dialyzer.ignore-warnings
 
 test: build
-	rebar skip_deps=true ct
+	$(REBAR) skip_deps=true ct
 
 clean:
 	$(REBAR) clean
