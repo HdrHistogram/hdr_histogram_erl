@@ -1,4 +1,3 @@
-# File: .travis.yml
 before_script:
 - sudo apt-get update
 - sudo apt-get install python
@@ -16,5 +15,3 @@ otp_release:
   - R16B03
   - R16B02
 script: make
-
-# EOF
