@@ -1,8 +1,8 @@
-REBAR?=./rebar
+REBAR=$(shell [ -f ./rebar ] && echo "./rebar" || echo "rebar" )
 
 .PHONY: all erl test clean doc 
 
-all: test
+all: test perf
 
 build:
 	$(REBAR) get-deps compile

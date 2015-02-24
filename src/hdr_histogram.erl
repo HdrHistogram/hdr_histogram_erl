@@ -95,6 +95,8 @@
 -export([log/3]).
 -export([reset/1]).
 -export([close/1]).
+-export([from_binary/1]).
+-export([to_binary/1]).
 -export([iter_open/1]).
 -export([iter_init/3]).
 -export([iter_next/1]).
@@ -287,6 +289,19 @@ reset(_Ref) ->
     Ref :: ref().
 %% @doc Close this HDR histogram instance and free any system resources
 close(_Ref) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+-spec from_binary(Binary) -> {ok,Ref} | {error,term()} when
+    Binary :: binary(),
+    Ref :: ref().
+%% @doc Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used 
+from_binary(_Binary) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+-spec to_binary(Ref) -> binary() | {error,term()} when
+    Ref :: ref().
+%% @doc Take a snapshot of HDR histogram internal state as a compressed binary. The reference HDR instance can be modified after a snapshot is taken in the usual way with no restrictions.
+to_binary(_Ref) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
 %% @private

@@ -72,11 +72,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 #include <math.h>
 #include <errno.h>
 
 #include "erl_nif.h"
 #include "hdr_histogram.h" 
+#include "hdr_histogram_log.h" 
 
 static ERL_NIF_TERM ATOM_OK;
 static ERL_NIF_TERM ATOM_ERROR;
@@ -129,8 +132,8 @@ static inline double round_to_significant_figures(double value, int figures)
 
 ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t highest_trackable_value;
-    int significant_figures;
+    long highest_trackable_value = 0;
+    int significant_figures = 0;
     if (argc != 2 ||
         !enif_get_int64(env, argv[0], &highest_trackable_value) ||
         !enif_get_int(env, argv[1], &significant_figures))
@@ -169,7 +172,7 @@ ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -188,7 +191,7 @@ ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 
 ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -207,8 +210,8 @@ ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 
 ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t value;
-    hh_ctx_t* ctx;
+    long value = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if(argc != 2 || 
@@ -228,9 +231,9 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t value;
-    int64_t expected_interval;
-    hh_ctx_t* ctx;
+    long value = 0;
+    long expected_interval = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if(argc != 3 ||
@@ -251,9 +254,9 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
 ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t value;
-    int64_t count;
-    hh_ctx_t* ctx;
+    long value = 0;
+    long count = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if(argc != 3 ||
@@ -274,7 +277,7 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
 ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
     hh_ctx_t* from;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
@@ -296,7 +299,7 @@ ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -316,7 +319,7 @@ ERL_NIF_TERM _hh_min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -343,7 +346,7 @@ ERL_NIF_TERM _hh_max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_mean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -376,7 +379,7 @@ ERL_NIF_TERM _hh_mean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_median(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -409,7 +412,7 @@ ERL_NIF_TERM _hh_median(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_stddev(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -443,7 +446,7 @@ ERL_NIF_TERM _hh_stddev(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 ERL_NIF_TERM _hh_percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     double percentile;
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 2 ||
@@ -477,9 +480,9 @@ ERL_NIF_TERM _hh_percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t a;
-    int64_t b;
-    hh_ctx_t* ctx;
+    long a = 0;
+    long b = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 3 ||
@@ -502,8 +505,8 @@ ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t value;
-    hh_ctx_t* ctx;
+    long value = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -527,8 +530,8 @@ ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    int64_t value;
-    hh_ctx_t* ctx;
+    long value = 0;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -549,7 +552,7 @@ ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_print_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -569,7 +572,7 @@ ERL_NIF_TERM _hh_print_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
 
 ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -590,7 +593,7 @@ ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     char fname[64];
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 2 || ctx_type == NULL ||
@@ -623,7 +626,7 @@ ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     char fname[64];
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 2 || ctx_type == NULL ||
@@ -654,7 +657,7 @@ ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -674,7 +677,7 @@ ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hh_ctx_t* ctx;
+    hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -691,6 +694,69 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     enif_release_resource(ctx_type);
 
     return ATOM_OK;
+}
+
+
+ERL_NIF_TERM _hh_from_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    ErlNifBinary source;
+
+    if (!enif_inspect_binary(env, argv[0], &source))
+    {
+      return enif_make_badarg(env);
+    }
+
+    hdr_histogram_t* target = NULL;
+    int success = hdr_decode_compressed(source.data, source.size, &target);
+
+    if (success != 0)
+    {
+        return make_error(env, "bad_hdr_binary");
+    }
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    hh_ctx_t* ctx = (hh_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hh_ctx_t));
+    enif_keep_resource(ctx);
+
+    ctx->data = (hdr_histogram_t*)target;
+    ctx->highest_trackable_value = target->highest_trackable_value;
+    ctx->significant_figures = target->significant_figures;
+
+    ERL_NIF_TERM result = enif_make_resource(env, ctx);
+    enif_release_resource(ctx);
+
+    return enif_make_tuple2(env, ATOM_OK, result);
+}
+
+ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hh_ctx_t* ctx = NULL;
+    ErlNifBinary target;
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    if (ctx_type != NULL &&
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    {
+        return enif_make_badarg(env);
+    }
+    int size = 0;
+    uint8_t* data = NULL;
+    int success = hdr_encode_compressed(ctx->data, &data, &size);
+
+    if (!enif_alloc_binary(size, &target))
+    {
+        return make_error(env, "bad_hdr_binary_alloc");
+    }
+    target.size = size;
+    memcpy(target.data,data,size);
+    free(data);
+
+    if (success != 0)
+    {
+        return make_error(env, "bad_hdr_binary");
+    }
+
+    return enif_make_binary(env, &target);
 }
 
 #define HDR_ITER_REC 1
@@ -778,7 +844,7 @@ ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o)
 
 ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    uint32_t iterator_type;
+    uint32_t iterator_type = 0;
 
     if (argc != 1 ||
         !enif_get_uint(env, argv[0], &iterator_type))
@@ -810,7 +876,7 @@ ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hi_ctx_t* ctx;
+    hi_ctx_t* ctx = NULL;
     hh_ctx_t* hdr;
     hi_opts_t* opts;
 
@@ -897,7 +963,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hi_ctx_t* ctx;
+    hi_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (argc != 1 ||
@@ -1136,7 +1202,7 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    hi_ctx_t* ctx;
+    hi_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     if (ctx_type != NULL &&
@@ -1233,6 +1299,8 @@ static ErlNifFunc nif_funcs[] =
     {"log_csv", 2, _hh_log_csv},
     {"reset", 1, _hh_reset},
     {"close", 1, _hh_close},
+    {"from_binary", 1, _hh_from_binary},
+    {"to_binary", 1, _hh_to_binary},
     // HDR histogram iteration facility
     {"iter_open", 1, _hi_open},
     {"iter_init", 3, _hi_init},

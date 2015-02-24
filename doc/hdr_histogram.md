@@ -128,8 +128,8 @@ ref() = binary()
 ## Function Index ##
 
 
-<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-2">add/2</a></td><td>Contribute the data points from a HDR histogram to another.</td></tr><tr><td valign="top"><a href="#close-1">close/1</a></td><td>Close this HDR histogram instance and free any system resources.</td></tr><tr><td valign="top"><a href="#count_at-2">count_at/2</a></td><td>Get the count of values at a given at a given value.</td></tr><tr><td valign="top"><a href="#get_memory_size-1">get_memory_size/1</a></td><td>Get memory footprint of an HDR histogram.</td></tr><tr><td valign="top"><a href="#get_total_count-1">get_total_count/1</a></td><td>Get total count of record values.</td></tr><tr><td valign="top"><a href="#log-3">log/3</a></td><td>Log the histogram to a file in classic or CSV format.</td></tr><tr><td valign="top"><a href="#lowest_at-2">lowest_at/2</a></td><td>Get the lowest equivalent value.</td></tr><tr><td valign="top"><a href="#max-1">max/1</a></td><td>Get the maximum recorded data point value.</td></tr><tr><td valign="top"><a href="#mean-1">mean/1</a></td><td>Get the mean data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#median-1">median/1</a></td><td>Get the median data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#min-1">min/1</a></td><td>Get the minimum recorded data point value.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>Open a fresh instance of a high dynamic range (HDR) histogram.</td></tr><tr><td valign="top"><a href="#percentile-2">percentile/2</a></td><td>Get the specified percentile  data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#print-2">print/2</a></td><td>Print the histogram to standard output in classic or CSV format.</td></tr><tr><td valign="top"><a href="#record-2">record/2</a></td><td>Record an uncorrected histogram data point value in a HDR histogram.</td></tr><tr><td valign="top"><a href="#record_corrected-3">record_corrected/3</a></td><td>Record a histogram data point value in a HDR histogram with
-expected interval for correction for coordinated ommission.</td></tr><tr><td valign="top"><a href="#record_many-3">record_many/3</a></td><td>Record a histogram data point value and number of occurances.</td></tr><tr><td valign="top"><a href="#reset-1">reset/1</a></td><td>Reset the memory backing this HDR histogram instance and zero results.</td></tr><tr><td valign="top"><a href="#same-3">same/3</a></td><td>Are two data point values considered to be equivalent.</td></tr><tr><td valign="top"><a href="#stddev-1">stddev/1</a></td><td>Get the standard deviation data point value to a significant figure.</td></tr></table>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#add-2">add/2</a></td><td>Contribute the data points from a HDR histogram to another.</td></tr><tr><td valign="top"><a href="#close-1">close/1</a></td><td>Close this HDR histogram instance and free any system resources.</td></tr><tr><td valign="top"><a href="#count_at-2">count_at/2</a></td><td>Get the count of values at a given at a given value.</td></tr><tr><td valign="top"><a href="#from_binary-1">from_binary/1</a></td><td>Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference.</td></tr><tr><td valign="top"><a href="#get_memory_size-1">get_memory_size/1</a></td><td>Get memory footprint of an HDR histogram.</td></tr><tr><td valign="top"><a href="#get_total_count-1">get_total_count/1</a></td><td>Get total count of record values.</td></tr><tr><td valign="top"><a href="#log-3">log/3</a></td><td>Log the histogram to a file in classic or CSV format.</td></tr><tr><td valign="top"><a href="#lowest_at-2">lowest_at/2</a></td><td>Get the lowest equivalent value.</td></tr><tr><td valign="top"><a href="#max-1">max/1</a></td><td>Get the maximum recorded data point value.</td></tr><tr><td valign="top"><a href="#mean-1">mean/1</a></td><td>Get the mean data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#median-1">median/1</a></td><td>Get the median data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#min-1">min/1</a></td><td>Get the minimum recorded data point value.</td></tr><tr><td valign="top"><a href="#open-2">open/2</a></td><td>Open a fresh instance of a high dynamic range (HDR) histogram.</td></tr><tr><td valign="top"><a href="#percentile-2">percentile/2</a></td><td>Get the specified percentile  data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#print-2">print/2</a></td><td>Print the histogram to standard output in classic or CSV format.</td></tr><tr><td valign="top"><a href="#record-2">record/2</a></td><td>Record an uncorrected histogram data point value in a HDR histogram.</td></tr><tr><td valign="top"><a href="#record_corrected-3">record_corrected/3</a></td><td>Record a histogram data point value in a HDR histogram with
+expected interval for correction for coordinated ommission.</td></tr><tr><td valign="top"><a href="#record_many-3">record_many/3</a></td><td>Record a histogram data point value and number of occurances.</td></tr><tr><td valign="top"><a href="#reset-1">reset/1</a></td><td>Reset the memory backing this HDR histogram instance and zero results.</td></tr><tr><td valign="top"><a href="#same-3">same/3</a></td><td>Are two data point values considered to be equivalent.</td></tr><tr><td valign="top"><a href="#stddev-1">stddev/1</a></td><td>Get the standard deviation data point value to a significant figure.</td></tr><tr><td valign="top"><a href="#to_binary-1">to_binary/1</a></td><td>Take a snapshot of HDR histogram internal state as a compressed binary.</td></tr></table>
 
 
 <a name="functions"></a>
@@ -172,6 +172,18 @@ count_at(Ref, Value) -&gt; CountAt
 <ul class="definitions"><li><code>Ref = <a href="#type-ref">ref()</a></code></li><li><code>Value = integer()</code></li><li><code>CountAt = integer()</code></li></ul>
 
 Get the count of values at a given at a given value
+<a name="from_binary-1"></a>
+
+### from_binary/1 ###
+
+
+<pre><code>
+from_binary(Binary) -&gt; {ok, Ref} | {error, term()}
+</code></pre>
+
+<ul class="definitions"><li><code>Binary = binary()</code></li><li><code>Ref = <a href="#type-ref">ref()</a></code></li></ul>
+
+Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used
 <a name="get_memory_size-1"></a>
 
 ### get_memory_size/1 ###
@@ -377,3 +389,15 @@ stddev(Ref) -&gt; StddevValue
 <ul class="definitions"><li><code>Ref = <a href="#type-ref">ref()</a></code></li><li><code>StddevValue = float()</code></li></ul>
 
 Get the standard deviation data point value to a significant figure
+<a name="to_binary-1"></a>
+
+### to_binary/1 ###
+
+
+<pre><code>
+to_binary(Ref) -&gt; binary() | {error, term()}
+</code></pre>
+
+<ul class="definitions"><li><code>Ref = <a href="#type-ref">ref()</a></code></li></ul>
+
+Take a snapshot of HDR histogram internal state as a compressed binary. The reference HDR instance can be modified after a snapshot is taken in the usual way with no restrictions.
