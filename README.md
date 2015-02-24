@@ -128,4 +128,34 @@ end
 
 [API documentation](doc/README.md)
 
-Enjoy!
+## A note on tuning ##
+
+
+A common useage example of HdrHistogram is to record response times, in units ofmicroseconds, across a dynamic range stretching from 1 usec to over an hour. We want a good enough resolution to support performing post-recording analysis on the collected data at some future time.
+
+In order to facilitate the accuracy needed for such post-recording activities, we can maintain a resolution of ~1 usec or better for times ranging to ~2 msec in magnitude, while at the same time maintaining a resolution of ~1 msec or better for times ranging to ~2 sec, and a resolution of ~1 second or better for values up to 2,000 seconds, and so on. This sort of dynamic resolution can be thought of as "always accurate to 3 decimal points".
+
+A HDR Histogram works like this. We MUST tune the highest trackable value to 3,600,000,000, and the number of significant value digits of 3. This range is fixed, and occupies a fixed, unchanging memory footprint of around 185KB.
+
+## A note on footprint estimation ##
+
+
+Due to it's **dynamic range** representation, HDR Histogram is relatively efficient in memory space requirements given the accuracy and dynamic range that it covers.
+
+Still, it is useful to be able to estimate the memory footprint involved for a given highest trackable value and the configured number of significant value digits combination. Beyond a relatively small fixed-size footprint used for internal fields and stats (which can be estimated as "fixed at well less than 1KB"), the bulk of a histogram's storage is taken up by it's data value recording counts array. The total footprint can be conservatively estimated by:
+
+```
+ largestValueWithSingleUnitResolution =
+        2 * (10 ^ numberOfSignificantValueDigits);
+ subBucketSize =
+        roundedUpToNearestPowerOf2(largestValueWithSingleUnitResolution);
+
+ expectedHistogramFootprintInBytes = 512 +
+      ({primitive type size} / 2) *
+      (log2RoundedUp((highestTrackableValue) / subBucketSize) + 2) *
+      subBucketSize
+```
+
+A conservative (high) estimate of a Histogram's footprint in bytes is available via thegetEstimatedFootprintInBytes() method.
+
+## Enjoy!
