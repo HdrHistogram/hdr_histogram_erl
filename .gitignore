@@ -6,3 +6,4 @@ perf/hh
 priv
 .rebar
 *.beam
+.eunit
