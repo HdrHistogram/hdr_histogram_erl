@@ -1,0 +1,8 @@
+*.o
+deps/
+ebin/
+logs/
+perf/hh
+priv
+.rebar
+*.beam

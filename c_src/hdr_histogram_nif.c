@@ -79,8 +79,9 @@
 #include <errno.h>
 
 #include "erl_nif.h"
-#include "hdr_histogram.h" 
-#include "hdr_histogram_log.h" 
+#include "hdr_histogram.h"
+#include "hdr_histogram_log.h"
+#include "hdr_histogram_bin.h"
 
 static ERL_NIF_TERM ATOM_OK;
 static ERL_NIF_TERM ATOM_ERROR;
@@ -708,7 +709,7 @@ ERL_NIF_TERM _hh_from_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
     }
 
     hdr_histogram_t* target = NULL;
-    int success = hdr_decode_compressed(source.data, source.size, &target);
+    int success = hdr_decode(source.data, source.size, &target);
 
     if (success != 0)
     {
@@ -743,6 +744,37 @@ ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     int size = 0;
     uint8_t* data = NULL;
     int success = hdr_encode_compressed(ctx->data, &data, &size);
+
+    if (!enif_alloc_binary(size, &target))
+    {
+        return make_error(env, "bad_hdr_binary_alloc");
+    }
+    target.size = size;
+    memcpy(target.data,data,size);
+    free(data);
+
+    if (success != 0)
+    {
+        return make_error(env, "bad_hdr_binary");
+    }
+
+    return enif_make_binary(env, &target);
+}
+
+ERL_NIF_TERM _hh_to_binary_uncompressed(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hh_ctx_t* ctx = NULL;
+    ErlNifBinary target;
+
+    ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
+    if (ctx_type != NULL &&
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    {
+        return enif_make_badarg(env);
+    }
+    int size = 0;
+    uint8_t* data = NULL;
+    int success = hdr_encode_uncompressed(ctx->data, &data, &size);
 
     if (!enif_alloc_binary(size, &target))
     {
@@ -1302,6 +1334,7 @@ static ErlNifFunc nif_funcs[] =
     {"close", 1, _hh_close},
     {"from_binary", 1, _hh_from_binary},
     {"to_binary", 1, _hh_to_binary},
+    {"to_binary_uncompressed", 1, _hh_to_binary_uncompressed},
     // HDR histogram iteration facility
     {"iter_open", 1, _hi_open},
     {"iter_init", 3, _hi_init},
