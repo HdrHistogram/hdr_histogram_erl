@@ -314,7 +314,7 @@ to_binary_uncompressed(_Ref) ->
                       {compression, zlib}]) ->
                        binary() | {error,term()} when
       Ref :: ref().
-
+%% @doc Take a snapshot of HDR histogram internal state as an (optionally) compressed binary. The reference HDR instance can be modified after a snapshot is taken in the usual way with no restrictions.
 to_binary(Ref, []) ->
     to_binary(Ref);
 to_binary(Ref, [{compression, zlib}]) ->
