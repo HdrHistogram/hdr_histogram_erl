@@ -97,6 +97,7 @@
 -export([close/1]).
 -export([from_binary/1]).
 -export([to_binary/1]).
+-export([to_binary/2]).
 -export([iter_open/1]).
 -export([iter_init/3]).
 -export([iter_next/1]).
@@ -303,6 +304,25 @@ from_binary(_Binary) ->
 %% @doc Take a snapshot of HDR histogram internal state as a compressed binary. The reference HDR instance can be modified after a snapshot is taken in the usual way with no restrictions.
 to_binary(_Ref) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+-spec to_binary_uncompressed(Ref) -> binary() | {error,term()} when
+    Ref :: ref().
+to_binary_uncompressed(_Ref) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+-spec to_binary(Ref, [{compression, none} |
+                      {compression, zlib}]) ->
+                       binary() | {error,term()} when
+      Ref :: ref().
+
+to_binary(Ref, []) ->
+    to_binary(Ref);
+to_binary(Ref, [{compression, zlib}]) ->
+    to_binary(Ref);
+to_binary(Ref, [{compression, none}]) ->
+    to_binary_uncompressed(Ref);
+to_binary(_Ref, _) ->
+    {error, bad_options}.
 
 %% @private
 iter_open(_) ->
