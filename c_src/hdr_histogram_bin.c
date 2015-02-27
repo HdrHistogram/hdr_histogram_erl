@@ -182,16 +182,15 @@ int hdr_decode(
     }
 
     _compression_flyweight* compression_flyweight = (_compression_flyweight*) buffer;
-    switch be32toh(compression_flyweight->cookie) {
-      case NOCOMPRESSION_COOKIE:
-        result = hdr_decode_uncompressed(buffer, length, histogram);
-        break;
-      case COMPRESSION_COOKIE:
-        result = hdr_decode_compressed(buffer, length, histogram);
-        break;
-      default:
-        FAIL_AND_CLEANUP(cleanup, result, HDR_COMPRESSION_COOKIE_MISMATCH);
-      }
+
+    int32_t cookie = be32toh(compression_flyweight->cookie);
+    if (cookie == NOCOMPRESSION_COOKIE) {
+      result = hdr_decode_uncompressed(buffer, length, histogram);
+    } else if (cookie == COMPRESSION_COOKIE) {
+      result = hdr_decode_compressed(buffer, length, histogram);
+    } else {
+      FAIL_AND_CLEANUP(cleanup, result, HDR_COMPRESSION_COOKIE_MISMATCH);
+    }
 
  cleanup:
 
