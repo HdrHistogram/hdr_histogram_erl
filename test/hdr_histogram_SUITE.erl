@@ -274,7 +274,7 @@ t_counter_example_stddev(_Config) ->
     %% be the nicer choice.
     %% io:format("Stddev is: ~p~n", [StdDev]),
     binary_to_term(term_to_binary(StdDev)),
-    histogram:close(H),
+    hdr_histogram:close(H),
     ok.
 
 step_counts() ->
