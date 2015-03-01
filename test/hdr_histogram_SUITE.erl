@@ -49,7 +49,7 @@ groups() ->
       , t_hdr_reset
       , t_hdr_close
       , t_hdr_binary
-      % , t_hdr_binary_nc %% Commented out. Issues arize when used with CT
+      , t_hdr_binary_nc %% Commented out. Issues arize when used with CT
     ]},
      {iter, [], [
         t_iter_recorded
@@ -157,7 +157,7 @@ t_hdr_close(Config) ->
     %% double close is harmless
     ok.
 
-t_hdr_binary(Config) ->
+t_hdr_binary(_Config) ->
     %% Work around an issue with CT and NIFs
     {Raw,Cor} = load_histograms(),
     BinRaw = hdr_histogram:to_binary(Raw),
@@ -173,7 +173,7 @@ t_hdr_binary(Config) ->
     cmp(1.0e8 , hdr_histogram:percentile(Cor2, 100.0), 0.001),
     ok.
 
-t_hdr_binary_nc(Config) ->
+t_hdr_binary_nc(_Config) ->
     %% Work around an issue with CT and NIFs
     {Raw,Cor} = load_histograms(),
     BinRaw = hdr_histogram:to_binary(Raw, [{compression, none}]),

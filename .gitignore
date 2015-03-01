@@ -7,3 +7,6 @@ priv
 .rebar
 *.beam
 .eunit
+.eqc-info
+current_counterexample.eqc
+erl_crash.dump

@@ -24,7 +24,7 @@ dialyze:
 test: build
 	$(REBAR) skip_deps=true ct
 
-eqc:
+eqc: build
 	$(REBAR) skip_deps=true eunit
 
 clean:
