@@ -127,8 +127,17 @@ static inline ERL_NIF_TERM make_error(ErlNifEnv* env, const char* text)
 
 static inline double round_to_significant_figures(double value, int figures)
 {
-    double factor = pow(10.0, figures - ceil(log10(fabs(value))));
-    return round(value * factor) / factor;  
+    // This function does not handle values of 0 very well it will return inf
+    // for the factor and return nan so we just make sure we handle 0 seperately.
+    if (value == 0.)
+    {
+        return 0;
+    }
+    else
+    {
+        double factor = pow(10.0, figures - ceil(log10(fabs(value))));
+        return round(value * factor) / factor;
+    }
 }
 
 ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
@@ -422,7 +431,7 @@ ERL_NIF_TERM _hh_stddev(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     {
         return enif_make_badarg(env);
     }
-   
+
     if (ctx != NULL)
     {
         if (ctx->data->total_count == 0)
