@@ -1,4 +1,2 @@
 %-*-Erlang-*-
 {build, "make eqc-compile"}.
-{test_path, "tbin"}.
-{deps, "ebin"}.

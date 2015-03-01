@@ -55,10 +55,5 @@ demo-erlang: doc
 	./examples/simple.erl
 
 eqc-compile: build
-	[ -d ebin ] && rm -r ebin || true
-	mkdir ebin 
-	[ -d tbin ] && rm -r tbin || true
-	mkdir tbin
-	(cd test; erl -noshell -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {outdir, "../tbin"}])' -s init stop)
-	(cd src; erl -noshell -DEQC -DTEST -eval 'make:all([{parse_transform, eqc_cover}, {i, "../include"}, {outdir, "../ebin"}])' -s init stop)
-
+	-mkdir ebin
+	erl -make
