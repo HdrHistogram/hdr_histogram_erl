@@ -30,6 +30,9 @@
 #define HDR_INFLATE_FAIL -29994
 #define HDR_LOG_INVALID_VERSION -29993
 
+int hdr_decode(uint8_t* b, size_t len, struct hdr_histogram** h);
+int hdr_encode_uncompressed(struct hdr_histogram* h, uint8_t** ch, int* len);
+int hdr_decode_uncompressed(uint8_t* b, size_t len, struct hdr_histogram** h);
 int hdr_encode_compressed(struct hdr_histogram* h, uint8_t** ch, int* len);
 int hdr_decode_compressed(uint8_t* b, size_t len, struct hdr_histogram** h);
 

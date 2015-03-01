@@ -81,7 +81,6 @@
 #include "erl_nif.h"
 #include "hdr_histogram.h"
 #include "hdr_histogram_log.h"
-#include "hdr_histogram_bin.h"
 
 static ERL_NIF_TERM ATOM_OK;
 static ERL_NIF_TERM ATOM_ERROR;
@@ -736,11 +735,14 @@ ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifBinary target;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
-    if (ctx_type != NULL &&
+    if (argc != 1 ||
+        ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+
     {
         return enif_make_badarg(env);
     }
+
     int size = 0;
     uint8_t* data = NULL;
     int success = hdr_encode_compressed(ctx->data, &data, &size);
@@ -767,7 +769,8 @@ ERL_NIF_TERM _hh_to_binary_uncompressed(ErlNifEnv* env, int argc, const ERL_NIF_
     ErlNifBinary target;
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
-    if (ctx_type != NULL &&
+    if (argc != 1 ||
+        ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
     {
         return enif_make_badarg(env);
