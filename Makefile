@@ -24,6 +24,9 @@ dialyze:
 test: build
 	$(REBAR) skip_deps=true ct
 
+eqc: build
+	$(REBAR) skip_deps=true eunit
+
 clean:
 	$(REBAR) clean
 	-rm -f doc/*.md doc/edoc-info
