@@ -1,0 +1,4 @@
+%% encoding: UTF-8
+{application,hdr_histogram}.
+{packages,[]}.
+{modules,[hdr_histogram,hdr_iter]}.
