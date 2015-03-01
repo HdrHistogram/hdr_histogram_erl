@@ -42,19 +42,19 @@ vals(H) ->
      hdr_histogram:percentile(H,99.0), hdr_histogram:percentile(H, 99.9999),
      hdr_histogram:get_memory_size(H), hdr_histogram:get_total_count(H)].
 
-%%prop_to_bin_none() ->
-%%    ?FORALL(HRaw, hist(),
-%%            begin
-%%                H = eval(HRaw),
-%%                Bin = ?H:to_binary(H, [{compression, none}]),
-%%                {ok, H1} = ?H:from_binary(Bin),
-%%                V = values(H),
-%%                V1 = values(H1),
-%%                ?H:close(H),
-%%                ?H:close(H1),
-%%                ?WHENFAIL(io:format("~p~n", [[HRaw, V, V1]]),
-%%                          V == V1)
-%%            end).
+prop_to_bin_none() ->
+    ?FORALL(HRaw, hist(),
+            begin
+                H = eval(HRaw),
+                Bin = ?H:to_binary(H, [{compression, none}]),
+                {ok, H1} = ?H:from_binary(Bin),
+                V = vals(H),
+                V1 = vals(H1),
+                ?H:close(H),
+                ?H:close(H1),
+                ?WHENFAIL(io:format(user ,"~p => ~p =/= ~p~n", [HRaw, V, V1]),
+                          V == V1)
+            end).
 
 prop_to_bin_zlib() ->
     ?FORALL(HRaw, hist(),
@@ -66,28 +66,23 @@ prop_to_bin_zlib() ->
                 V1 = vals(H1),
                 ?H:close(H),
                 ?H:close(H1),
-                case cmp(V, V1, 0.001) of
-                    false ->
-                        spawn(io, format, ["~p -> ~p -> ~p~n", [HRaw, V, V1]]),
-                        false;
-                    _ -> true
-                end
+                ?WHENFAIL(io:format(user ,"~p => ~p =/= ~p~n", [HRaw, V, V1]),
+                          V == V1)
             end).
 
-cmp([], [],_) ->
-    true;
-cmp([L1 | R1], [L2 | R2], D) ->
-    try erlang:abs(L1-L2) of
-	R when R >= D -> 
-            io:format(user, "~p - ~p = ~p > ~p~n", [L1, L2, R, D]),
-            false;
-	_ -> cmp(R1, R2, D)
-    catch
-       _:_ ->
-           io:format(user, "~p ~p~n", [L1, L2]),
-           false
-    end.
-  
+%% cmp([], [],_) ->
+%%     true;
+%% cmp([L1 | R1], [L2 | R2], D) ->
+%%     try erlang:abs(L1-L2) of
+%% 	R when R >= D ->
+%%             io:format(user, "~p - ~p = ~p > ~p~n", [L1, L2, R, D]),
+%%             false;
+%% 	_ -> cmp(R1, R2, D)
+%%     catch
+%%        _:_ ->
+%%            io:format(user, "~p ~p~n", [L1, L2]),
+%%            false
+%%     end.
 
 -endif.
 -endif.
