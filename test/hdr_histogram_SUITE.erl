@@ -27,6 +27,7 @@
 -export([t_iter_linear/1]).
 -export([t_iter_logarithmic/1]).
 -export([t_iter_percentile/1]).
+-export([t_counter_example_stddev/1]).
 
 -export([load_histograms/0]).
 
@@ -36,6 +37,7 @@ all() ->
     [
      {group, hdr}
      , {group, iter}
+     , {group, counter}
     ].
 
 groups() ->
@@ -56,6 +58,10 @@ groups() ->
       , t_iter_linear
       , t_iter_logarithmic
       , t_iter_percentile
+    ]},
+     %% Counter examples / regression tests for bugs
+    {counter, [], [
+        t_counter_example_stddev
     ]}].
 
 suite() ->
@@ -257,6 +263,19 @@ t_iter_percentile(Config) ->
   270 = RawStepCounts,
   238 = CorStepCounts,
   ok.
+
+%% This test triggers a bug in the stddev function.
+t_counter_example_stddev(_Config) ->
+    {ok, H} = hdr_histogram:open(100000,1),
+    hdr_histogram:record(H, 52581),
+    StdDev = hdr_histogram:stddev(H),
+    %% StdDev is a ilegal value we need to print it to tigger the crash
+    %% or convert it to binary and back. the binery conversion seems to
+    %% be the nicer choice.
+    %% io:format("Stddev is: ~p~n", [StdDev]),
+    binary_to_term(term_to_binary(StdDev)),
+    hdr_histogram:close(H),
+    ok.
 
 step_counts() ->
     fun({_,Attrs},Acc) ->
