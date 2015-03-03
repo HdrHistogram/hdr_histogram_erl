@@ -28,6 +28,7 @@
 -export([t_iter_logarithmic/1]).
 -export([t_iter_percentile/1]).
 -export([t_counter_example_stddev/1]).
+-export([t_issue_004/1]).
 
 -export([load_histograms/0]).
 
@@ -38,6 +39,7 @@ all() ->
      {group, hdr}
      , {group, iter}
      , {group, counter}
+     , {group, regression}
     ].
 
 groups() ->
@@ -62,6 +64,9 @@ groups() ->
      %% Counter examples / regression tests for bugs
     {counter, [], [
         t_counter_example_stddev
+    ]},
+    {regression, [], [
+        t_issue_004
     ]}].
 
 suite() ->
@@ -276,6 +281,14 @@ t_counter_example_stddev(_Config) ->
     binary_to_term(term_to_binary(StdDev)),
     hdr_histogram:close(H),
     ok.
+
+t_issue_004(_Config) ->
+    {ok,R} = hdr_histogram:open(10,1),
+    [ begin
+        ok = hdr_histogram:record(R, X)
+    end || X <- lists:seq(0,10) ],
+    {error, value_out_of_range} = hdr_histogram:record(R, -1),
+    {error, value_out_of_range} = hdr_histogram:record(R, 11).
 
 step_counts() ->
     fun({_,Attrs},Acc) ->

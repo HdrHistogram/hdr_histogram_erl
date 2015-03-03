@@ -231,6 +231,11 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         enif_make_badarg(env);
     }
 
+    if (value < 0 || value > ctx->highest_trackable_value)
+    {
+	return make_error(env, "value_out_of_range");
+    }
+
     if (ctx != NULL)
     {
         hdr_record_value(ctx->data, value);
@@ -254,6 +259,12 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
         enif_make_badarg(env);
     }
 
+
+    if (value < 0 || value > ctx->highest_trackable_value)
+    {
+	return make_error(env, "value_out_of_range");
+    }
+
     if (ctx != NULL)
     {
         hdr_record_corrected_value(ctx->data, value, expected_interval);
@@ -275,6 +286,12 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         !enif_get_int64(env, argv[2], &count))
     {
         enif_make_badarg(env);
+    }
+
+    if (value < ctx->data->lowest_trackable_value ||
+	value > ctx->data->highest_trackable_value)
+    {
+	return make_error(env, "value_out_of_range");
     }
 
     if (ctx != NULL)
