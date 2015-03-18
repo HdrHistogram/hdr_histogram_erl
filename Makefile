@@ -54,3 +54,7 @@ demo-elixir: doc
 
 demo-erlang: doc
 	./examples/simple.erl
+
+eqc-compile: build
+	-mkdir ebin
+	erl -make
