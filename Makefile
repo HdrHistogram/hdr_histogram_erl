@@ -1,4 +1,5 @@
 REBAR=$(shell [ -f ./rebar ] && echo "./rebar" || echo "rebar" )
+CC=$(shell clang -v >/dev/null && echo "clang" || echo "gcc")
 
 .PHONY: all erl test clean doc 
 
@@ -33,8 +34,8 @@ clean:
 	-rm -rvf deps ebin .eunit
 
 perf: build
-	clang -ggdb -c -O3 -ffast-math -std=c99 -I c_src perf/hh.c -o perf/hh.o
-	clang -ggdb -lm -o perf/hh c_src/hdr_histogram.o perf/hh.o
+	$(CC) -ggdb -c -O3 -ffast-math -std=c99 -I c_src perf/hh.c -o perf/hh.o
+	$(CC) -ggdb -lm -o perf/hh c_src/hdr_histogram.o perf/hh.o
 	perf/hh 1000000 1000000 1
 	perf/hh 100000000 1000000 1
 	perf/hh 1000000000 1000000 1

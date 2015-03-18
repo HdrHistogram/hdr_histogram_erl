@@ -43,6 +43,10 @@
 
 #include <endian.h>
 
+#elif __sun__
+
+#include "byteorder.h"
+
 #else
 
 #warning "Platform not supported\n"
