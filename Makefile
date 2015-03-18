@@ -52,6 +52,9 @@ doc: build
 demo-elixir: doc
 	elixir -pa ebin -r examples/simple.exs -e "Simple.main"
 
+demo-lfe: doc
+	ERL_LIBS=deps:.. lfescript examples/simple.lfe
+
 demo-erlang: doc
 	./examples/simple.erl
 
