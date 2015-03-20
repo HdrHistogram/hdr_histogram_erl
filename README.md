@@ -1,4 +1,4 @@
-**hdr_histogram_erl** [![Build Status](https://travis-ci.org/HdrHistogram/hdr_histogram_erl.svg?branch=master)](https://travis-ci.org/HdrHistogram/hdr_histogram_erl) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/HdrHistogram/HdrHistogram?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+**hdr_histogram_erl** [![Build Status](https://travis-ci.org/HdrHistogram/hdr_histogram_erl.svg?branch=master)](https://travis-ci.org/HdrHistogram/hdr_histogram_erl) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/HdrHistogram/HdrHistogram?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl.png" alt="Build Status" width="100px" height="18px">](http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl)
 
 ## Description ##
 
