@@ -158,4 +158,10 @@ Still, it is useful to be able to estimate the memory footprint involved for a g
 
 A conservative (high) estimate of a Histogram's footprint in bytes is available via thegetEstimatedFootprintInBytes() method.
 
+## A note on concurrent access ##
+
+HdrHistogram does *NOT* have any internal synchronization and at present hdr_histogram_erl does *NOT* provide any synchronization. This means that a Histogram reference must not be written to or read from multiple processes. 
+
+It is recommended that you either wrap an hdr_histogram in a process, thus serializing access. It is also possible to use `hdr_histogram:add/2` to aggregate the contents of two histograms, making it possible to utilize per-process histograms that are aggregated by a separate reporting process.
+
 ## Enjoy!
