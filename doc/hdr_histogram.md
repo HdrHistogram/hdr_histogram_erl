@@ -142,12 +142,12 @@ expected interval for correction for coordinated ommission.</td></tr><tr><td val
 
 
 <pre><code>
-add(To, From) -&gt; ok | {error, Reason}
+add(To, From) -&gt; integer() | {error, Reason}
 </code></pre>
 
 <ul class="definitions"><li><code>To = <a href="#type-ref">ref()</a></code></li><li><code>From = <a href="#type-ref">ref()</a></code></li><li><code>Reason = term()</code></li></ul>
 
-Contribute the data points from a HDR histogram to another
+Contribute the data points from a HDR histogram to another. Return the number of dropped data point values. That is, the values from From that are higher than the HighestTrackableValue of To.
 <a name="close-1"></a>
 
 ### close/1 ###

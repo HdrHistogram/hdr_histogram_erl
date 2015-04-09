@@ -168,11 +168,14 @@ record_corrected(_Ref,_Value,_ExpectedInterval) ->
 record_many(_Ref,_Value,_Count) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
--spec add(To,From) -> ok | {error,Reason}  when
+-spec add(To,From) -> integer() | {error,Reason}  when
     To :: ref(),
     From :: ref(),
     Reason :: term().
-%% @doc Contribute the data points from a HDR histogram to another
+%% @doc Contribute the data points from a HDR histogram to another.
+%% Return the number of dropped data point values.
+%% That is, the values from `From' that are higher than the
+%% `HighestTrackableValue' of `To'.
 add(_ToRef,_FromRef) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
