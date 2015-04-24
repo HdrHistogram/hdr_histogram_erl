@@ -29,6 +29,7 @@
 -export([t_iter_percentile/1]).
 -export([t_counter_example_stddev/1]).
 -export([t_issue_004/1]).
+-export([t_issue_013/1]).
 
 -export([load_histograms/0]).
 
@@ -66,7 +67,8 @@ groups() ->
         t_counter_example_stddev
     ]},
     {regression, [], [
-        t_issue_004
+        t_issue_004,
+        t_issue_013
     ]}].
 
 suite() ->
@@ -290,6 +292,14 @@ t_issue_004(_Config) ->
     {error, value_out_of_range} = hdr_histogram:record(R, -1),
     {error, value_out_of_range} = hdr_histogram:record(R, 11).
 
+t_issue_013(_Config) ->
+    {ok,R} = hdr_histogram:open(10,1),
+    [ begin
+      ok = hdr_histogram:record_many(R, X, 10)
+    end || X <- lists:seq(0,10) ],
+    {error, value_out_of_range} = hdr_histogram:record(R, -1),
+    {error, value_out_of_range} = hdr_histogram:record(R, 11).
+    
 step_counts() ->
     fun({_,Attrs},Acc) ->
         {step_count,X}=lists:keyfind(step_count,1,Attrs),
