@@ -262,7 +262,7 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
     if (value < 0 || value > ctx->highest_trackable_value)
     {
-	return make_error(env, "value_out_of_range");
+	    return make_error(env, "value_out_of_range");
     }
 
     if (ctx != NULL)
@@ -288,10 +288,11 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         enif_make_badarg(env);
     }
 
-    if (value < ctx->data->lowest_trackable_value ||
-	value > ctx->data->highest_trackable_value)
+    if ( 
+        value < 0 ||
+	    value > ctx->data->highest_trackable_value)
     {
-	return make_error(env, "value_out_of_range");
+	    return make_error(env, "value_out_of_range");
     }
 
     if (ctx != NULL)
