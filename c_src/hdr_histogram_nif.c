@@ -168,7 +168,6 @@ ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     hh_ctx_t* ctx = (hh_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hh_ctx_t));
-    enif_keep_resource(ctx);
 
     ctx->data = raw_histogram; 
     ctx->highest_trackable_value = highest_trackable_value;
@@ -744,7 +743,6 @@ ERL_NIF_TERM _hh_from_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     hh_ctx_t* ctx = (hh_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hh_ctx_t));
-    enif_keep_resource(ctx);
 
     ctx->data = (hdr_histogram_t*)target;
     ctx->highest_trackable_value = target->highest_trackable_value;
@@ -925,7 +923,6 @@ ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
     ErlNifResourceType* ctx_type = (ErlNifResourceType*)enif_priv_data(env);
     hi_ctx_t* ctx = (hi_ctx_t*)enif_alloc_resource(ctx_type, sizeof(hi_ctx_t));
-    enif_keep_resource(ctx);
 
     ctx->type = iterator_type;
     ctx->opts = NULL;
