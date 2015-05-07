@@ -960,11 +960,13 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* hdr;
     hi_opts_t* opts;
 
-    ErlNifResourceType* ctx_type = get_hi_ctx_type(env);
+    ErlNifResourceType* hh_ctx_type = get_hh_ctx_type(env);
+    ErlNifResourceType* hi_ctx_type = get_hi_ctx_type(env);
     if (argc != 3 ||
-        ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
-        !enif_get_resource(env, argv[1], ctx_type, (void **)&hdr) ||
+        hh_ctx_type == NULL ||
+        hi_ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], hi_ctx_type, (void **)&ctx) ||
+        !enif_get_resource(env, argv[1], hh_ctx_type, (void **)&hdr) ||
         !enif_is_list(env, argv[2]))
     {
         return enif_make_badarg(env);
