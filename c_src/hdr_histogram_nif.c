@@ -148,7 +148,7 @@ static inline double round_to_significant_figures(double value, int figures)
 static inline ErlNifResourceType* get_hh_ctx_type(ErlNifEnv* env)
 {
     priv_data_t *pd = (priv_data_t*)enif_priv_data(env);
-    return *pd->hh_ctx_type;
+    return pd->hh_ctx_type;
 }
 
 static inline ErlNifResourceType* get_hi_ctx_type(ErlNifEnv* env)
