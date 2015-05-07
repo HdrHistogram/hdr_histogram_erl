@@ -735,9 +735,19 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         free(ctx->data);
         ctx->data = NULL;
     }
-    enif_release_resource(ctx_type);
 
     return ATOM_OK;
+}
+
+static void _hh_ctx_dtor(ErlNifEnv* env, void* obj)
+{
+    hh_ctx_t* ctx = (hh_ctx_t*)obj;
+
+    if (ctx != NULL && ctx->data != NULL)
+    {
+        free(ctx->data);
+        ctx->data = NULL;
+    }
 }
 
 
@@ -1297,10 +1307,23 @@ ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         ctx->opts = NULL;
         ctx->iter = NULL;
     }
-    enif_release_resource(ctx_type);
 
     return ATOM_OK;
 }
+
+static void _hi_ctx_dtor(ErlNifEnv* env, void* obj)
+{
+    hi_ctx_t* ctx = (hi_ctx_t*)obj;
+
+    if (ctx != NULL && ctx->opts != NULL)
+    {
+        enif_free(ctx->opts);
+        enif_free(ctx->iter);
+        ctx->opts = NULL;
+        ctx->iter = NULL;
+    }
+}
+
 
 static void init(ErlNifEnv* env)
 {
@@ -1344,8 +1367,8 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
         return 1;
     }
 
-    pd->hh_ctx_type = enif_open_resource_type(env, NULL, "hh_ctx_t", NULL, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
-    pd->hi_ctx_type = enif_open_resource_type(env, NULL, "hi_ctx_t", NULL, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
+    pd->hh_ctx_type = enif_open_resource_type(env, NULL, "hh_ctx_t", _hh_ctx_dtor, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
+    pd->hi_ctx_type = enif_open_resource_type(env, NULL, "hi_ctx_t", _hi_ctx_dtor, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
 
     if(pd->hh_ctx_type == NULL || pd->hi_ctx_type == NULL) {
         return 1;
