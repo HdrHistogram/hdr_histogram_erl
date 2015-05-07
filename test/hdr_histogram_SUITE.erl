@@ -31,6 +31,7 @@
 -export([t_issue_004/1]).
 -export([t_issue_013/1]).
 -export([t_unique_resource_types/1]).
+-export([t_use_after_close/1]).
 
 -export([load_histograms/0]).
 
@@ -70,7 +71,8 @@ groups() ->
     {regression, [], [
         t_issue_004,
         t_issue_013,
-        t_unique_resource_types
+        t_unique_resource_types,
+        t_use_after_close
     ]}].
 
 suite() ->
@@ -311,6 +313,14 @@ t_unique_resource_types(_Config) ->
         error:badarg ->
             ok
     end.
+
+t_use_after_close(_Config) ->
+    {ok, H} = hdr_histogram:open(10, 1),
+    ok = hdr_histogram:close(H),
+
+    ok = hdr_histogram:record(H, 1),
+    ok = hdr_histogram:record_corrected(H, 1, 1),
+    ok = hdr_histogram:record_many(H, 1, 5).
 
 step_counts() ->
     fun({_,Attrs},Acc) ->
