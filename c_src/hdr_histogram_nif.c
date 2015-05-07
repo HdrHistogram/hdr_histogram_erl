@@ -165,7 +165,7 @@ ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         !enif_get_int64(env, argv[0], &highest_trackable_value) ||
         !enif_get_int(env, argv[1], &significant_figures))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
     hdr_histogram_t* raw_histogram;
@@ -245,7 +245,7 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         !enif_get_int64(env, argv[1], &value))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
     if (value < 0 || value > ctx->highest_trackable_value)
@@ -273,7 +273,7 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
         !enif_get_int64(env, argv[1], &value) ||
         !enif_get_int64(env, argv[2], &expected_interval))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
 
@@ -302,7 +302,7 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         !enif_get_int64(env, argv[1], &value) ||
         !enif_get_int64(env, argv[2], &count))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
     if ( 
@@ -929,7 +929,7 @@ ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 1 ||
         !enif_get_uint(env, argv[0], &iterator_type))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
     if (iterator_type != HDR_ITER_REC &&
@@ -967,7 +967,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         !enif_get_resource(env, argv[1], ctx_type, (void **)&hdr) ||
         !enif_is_list(env, argv[2]))
     {
-        enif_make_badarg(env);
+        return enif_make_badarg(env);
     }
 
     opts = (hi_opts_t *)enif_alloc(sizeof(hi_opts_t));
