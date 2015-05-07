@@ -30,6 +30,7 @@
 -export([t_counter_example_stddev/1]).
 -export([t_issue_004/1]).
 -export([t_issue_013/1]).
+-export([t_unique_resource_types/1]).
 
 -export([load_histograms/0]).
 
@@ -68,7 +69,8 @@ groups() ->
     ]},
     {regression, [], [
         t_issue_004,
-        t_issue_013
+        t_issue_013,
+        t_unique_resource_types
     ]}].
 
 suite() ->
@@ -300,6 +302,16 @@ t_issue_013(_Config) ->
     {error, value_out_of_range} = hdr_histogram:record(R, -1),
     {error, value_out_of_range} = hdr_histogram:record(R, 11).
     
+t_unique_resource_types(_Config) ->
+    {ok, H} = hdr_histogram:open(10, 1),
+    {ok, I} = hdr_iter:open(record, H, []),
+    try
+        shouldnt_match = hdr_histogram:record(I, 1)
+    catch
+        error:badarg ->
+            ok
+    end.
+
 step_counts() ->
     fun({_,Attrs},Acc) ->
         {step_count,X}=lists:keyfind(step_count,1,Attrs),
