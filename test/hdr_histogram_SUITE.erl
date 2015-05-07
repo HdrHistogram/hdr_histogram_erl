@@ -37,6 +37,8 @@
 
 -include_lib("common_test/include/ct.hrl").
 
+-define(BADARG(Expr), begin {'EXIT', {badarg, _}} = (catch Expr) end).
+
 all() ->
     [
      {group, hdr}
@@ -315,12 +317,43 @@ t_unique_resource_types(_Config) ->
     end.
 
 t_use_after_close(_Config) ->
-    {ok, H} = hdr_histogram:open(10, 1),
-    ok = hdr_histogram:close(H),
+    {ok, Closed} = hdr_histogram:open(10, 1),
+    ok = hdr_histogram:close(Closed),
 
-    ok = hdr_histogram:record(H, 1),
-    ok = hdr_histogram:record_corrected(H, 1, 1),
-    ok = hdr_histogram:record_many(H, 1, 5).
+    ?BADARG(hdr_histogram:get_memory_size(Closed)),
+    ?BADARG(hdr_histogram:get_total_count(Closed)),
+
+    ?BADARG(hdr_histogram:record(Closed, 1)),
+    ?BADARG(hdr_histogram:record_corrected(Closed, 1, 1)),
+    ?BADARG(hdr_histogram:record_many(Closed, 1, 5)),
+
+    {ok, Open} = hdr_histogram:open(10, 1),
+    ?BADARG(hdr_histogram:add(Closed, Open)),
+    ?BADARG(hdr_histogram:add(Open, Closed)),
+
+    ?BADARG(hdr_histogram:min(Closed)),
+    ?BADARG(hdr_histogram:max(Closed)),
+    ?BADARG(hdr_histogram:mean(Closed)),
+    ?BADARG(hdr_histogram:median(Closed)),
+
+    ?BADARG(hdr_histogram:stddev(Closed)),
+    ?BADARG(hdr_histogram:percentile(Closed, 50.0)),
+
+    ?BADARG(hdr_histogram:same(Closed, 5, 5)),
+    ?BADARG(hdr_histogram:lowest_at(Closed, 5)),
+    ?BADARG(hdr_histogram:count_at(Closed, 5)),
+
+    ?BADARG(hdr_histogram:print(Closed, classic)),
+    ?BADARG(hdr_histogram:log(Closed, classic, "foo")),
+
+    ?BADARG(hdr_histogram:reset(Closed)),
+    ?BADARG(hdr_histogram:close(Closed)),
+
+    ?BADARG(hdr_histogram:to_binary(Closed)),
+    ?BADARG(hdr_histogram:to_binary(Closed, [{compression, none}])),
+
+    ?BADARG(hdr_iter:open(record, Closed, [])),
+    ok.
 
 step_counts() ->
     fun({_,Attrs},Acc) ->

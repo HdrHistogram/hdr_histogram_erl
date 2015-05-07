@@ -202,8 +202,9 @@ ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -221,8 +222,9 @@ ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -243,6 +245,7 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if(argc != 2 || 
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &value))
     {
         return enif_make_badarg(env);
@@ -270,6 +273,7 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if(argc != 3 ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &value) ||
         !enif_get_int64(env, argv[2], &expected_interval))
     {
@@ -298,6 +302,7 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if(argc != 3 ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &value) ||
         !enif_get_int64(env, argv[2], &count))
     {
@@ -326,7 +331,9 @@ ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 2 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
-        !enif_get_resource(env, argv[1], ctx_type, (void **)&from))
+        ctx->data == NULL ||
+        !enif_get_resource(env, argv[1], ctx_type, (void **)&from) ||
+        from->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -346,7 +353,8 @@ ERL_NIF_TERM _hh_min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -366,7 +374,8 @@ ERL_NIF_TERM _hh_max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -393,7 +402,8 @@ ERL_NIF_TERM _hh_mean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -426,7 +436,8 @@ ERL_NIF_TERM _hh_median(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -459,7 +470,8 @@ ERL_NIF_TERM _hh_stddev(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -494,6 +506,7 @@ ERL_NIF_TERM _hh_percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 2 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_double(env, argv[1], &percentile))
     {
         return enif_make_badarg(env);
@@ -530,6 +543,7 @@ ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 3 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &a) ||
         !enif_get_int64(env, argv[2], &b))
     {
@@ -554,6 +568,7 @@ ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 1 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &value))
     {
         return enif_make_badarg(env);
@@ -579,6 +594,7 @@ ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     if (argc != 1 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_int64(env, argv[1], &value))
     {
         return enif_make_badarg(env);
@@ -597,8 +613,9 @@ ERL_NIF_TERM _hh_print_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -617,8 +634,9 @@ ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type != NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -640,6 +658,7 @@ ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 2 || ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
         !enif_get_string(env, argv[1], fname, 64, ERL_NIF_LATIN1))
     {
         return enif_make_badarg(env);
@@ -673,7 +692,8 @@ ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 2 || ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
-    !enif_get_string(env, argv[1], fname, 64, ERL_NIF_LATIN1))
+        ctx->data == NULL ||
+        !enif_get_string(env, argv[1], fname, 64, ERL_NIF_LATIN1))
     {
         return enif_make_badarg(env);
     }
@@ -702,13 +722,14 @@ ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
 
-    if (ctx != NULL && ctx->data != NULL)
+    if (ctx != NULL)
     {
         hdr_reset(ctx->data);
         return ATOM_OK;
@@ -722,8 +743,9 @@ ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL &&
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+    if (ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -778,7 +800,8 @@ ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
 
     {
         return enif_make_badarg(env);
@@ -812,7 +835,8 @@ ERL_NIF_TERM _hh_to_binary_uncompressed(ErlNifEnv* env, int argc, const ERL_NIF_
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 1 ||
         ctx_type == NULL ||
-        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx))
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL)
     {
         return enif_make_badarg(env);
     }
@@ -964,6 +988,7 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         hi_ctx_type == NULL ||
         !enif_get_resource(env, argv[0], hi_ctx_type, (void **)&ctx) ||
         !enif_get_resource(env, argv[1], hh_ctx_type, (void **)&hdr) ||
+        hdr->data == NULL ||
         !enif_is_list(env, argv[2]))
     {
         return enif_make_badarg(env);
