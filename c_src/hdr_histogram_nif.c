@@ -323,7 +323,7 @@ ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     hh_ctx_t* ctx = NULL;
-    hh_ctx_t* from;
+    hh_ctx_t* from = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
     if (argc != 2 ||
@@ -957,8 +957,8 @@ ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     hi_ctx_t* ctx = NULL;
-    hh_ctx_t* hdr;
-    hi_opts_t* opts;
+    hh_ctx_t* hdr = NULL;
+    hi_opts_t* opts = NULL;
 
     ErlNifResourceType* hh_ctx_type = get_hh_ctx_type(env);
     ErlNifResourceType* hi_ctx_type = get_hi_ctx_type(env);
