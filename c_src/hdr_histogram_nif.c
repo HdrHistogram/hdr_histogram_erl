@@ -1350,6 +1350,10 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     pd->hh_ctx_type = enif_open_resource_type(env, NULL, "hh_ctx_t", NULL, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
     pd->hi_ctx_type = enif_open_resource_type(env, NULL, "hi_ctx_t", NULL, ERL_NIF_RT_CREATE|ERL_NIF_RT_TAKEOVER, NULL);
 
+    if(pd->hh_ctx_type == NULL || pd->hi_ctx_type == NULL) {
+        return 1;
+    }
+
     *priv_data = (void*)pd;
 
     return 0;
