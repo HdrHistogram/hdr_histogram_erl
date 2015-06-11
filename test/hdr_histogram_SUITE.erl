@@ -37,7 +37,10 @@
 
 -include_lib("common_test/include/ct.hrl").
 
--define(BADARG(Expr), {'EXIT', {badarg, _}} = (catch Expr)).
+-define(BADARG(Expr), (fun() -> 
+                               {'EXIT', {badarg, _}} = (catch Expr), 
+                               ok 
+                       end)()).
 
 all() ->
     [
@@ -309,12 +312,7 @@ t_issue_013(_Config) ->
 t_unique_resource_types(_Config) ->
     {ok, H} = hdr_histogram:open(10, 1),
     {ok, I} = hdr_iter:open(record, H, []),
-    try
-        shouldnt_match = hdr_histogram:record(I, 1)
-    catch
-        error:badarg ->
-            ok
-    end.
+    ?BADARG(hdr_histogram:record(I, 1)).
 
 t_use_after_close(_Config) ->
     {ok, Closed} = hdr_histogram:open(10, 1),
@@ -352,8 +350,7 @@ t_use_after_close(_Config) ->
     ?BADARG(hdr_histogram:to_binary(Closed)),
     ?BADARG(hdr_histogram:to_binary(Closed, [{compression, none}])),
 
-    ?BADARG(hdr_iter:open(record, Closed, [])),
-    ok.
+    ?BADARG(hdr_iter:open(record, Closed, [])).
 
 step_counts() ->
     fun({_,Attrs},Acc) ->
