@@ -37,9 +37,9 @@
 
 -include_lib("common_test/include/ct.hrl").
 
--define(BADARG(Expr), (fun() -> 
-                               {'EXIT', {badarg, _}} = (catch Expr), 
-                               ok 
+-define(BADARG(Expr), (fun() ->
+                               {'EXIT', {badarg, _}} = (catch Expr),
+                               ok
                        end)()).
 
 all() ->
