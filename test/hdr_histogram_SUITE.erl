@@ -31,10 +31,16 @@
 -export([t_issue_004/1]).
 -export([t_issue_013/1]).
 -export([t_unique_resource_types/1]).
+-export([t_use_after_close/1]).
 
 -export([load_histograms/0]).
 
 -include_lib("common_test/include/ct.hrl").
+
+-define(BADARG(Expr), (fun() ->
+                               {'EXIT', {badarg, _}} = (catch Expr),
+                               ok
+                       end)()).
 
 all() ->
     [
@@ -70,7 +76,8 @@ groups() ->
     {regression, [], [
         t_issue_004,
         t_issue_013,
-        t_unique_resource_types
+        t_unique_resource_types,
+        t_use_after_close
     ]}].
 
 suite() ->
@@ -305,12 +312,45 @@ t_issue_013(_Config) ->
 t_unique_resource_types(_Config) ->
     {ok, H} = hdr_histogram:open(10, 1),
     {ok, I} = hdr_iter:open(record, H, []),
-    try
-        shouldnt_match = hdr_histogram:record(I, 1)
-    catch
-        error:badarg ->
-            ok
-    end.
+    ?BADARG(hdr_histogram:record(I, 1)).
+
+t_use_after_close(_Config) ->
+    {ok, Closed} = hdr_histogram:open(10, 1),
+    ok = hdr_histogram:close(Closed),
+
+    ?BADARG(hdr_histogram:get_memory_size(Closed)),
+    ?BADARG(hdr_histogram:get_total_count(Closed)),
+
+    ?BADARG(hdr_histogram:record(Closed, 1)),
+    ?BADARG(hdr_histogram:record_corrected(Closed, 1, 1)),
+    ?BADARG(hdr_histogram:record_many(Closed, 1, 5)),
+
+    {ok, Open} = hdr_histogram:open(10, 1),
+    ?BADARG(hdr_histogram:add(Closed, Open)),
+    ?BADARG(hdr_histogram:add(Open, Closed)),
+
+    ?BADARG(hdr_histogram:min(Closed)),
+    ?BADARG(hdr_histogram:max(Closed)),
+    ?BADARG(hdr_histogram:mean(Closed)),
+    ?BADARG(hdr_histogram:median(Closed)),
+
+    ?BADARG(hdr_histogram:stddev(Closed)),
+    ?BADARG(hdr_histogram:percentile(Closed, 50.0)),
+
+    ?BADARG(hdr_histogram:same(Closed, 5, 5)),
+    ?BADARG(hdr_histogram:lowest_at(Closed, 5)),
+    ?BADARG(hdr_histogram:count_at(Closed, 5)),
+
+    ?BADARG(hdr_histogram:print(Closed, classic)),
+    ?BADARG(hdr_histogram:log(Closed, classic, "foo")),
+
+    ?BADARG(hdr_histogram:reset(Closed)),
+    ?BADARG(hdr_histogram:close(Closed)),
+
+    ?BADARG(hdr_histogram:to_binary(Closed)),
+    ?BADARG(hdr_histogram:to_binary(Closed, [{compression, none}])),
+
+    ?BADARG(hdr_iter:open(record, Closed, [])).
 
 step_counts() ->
     fun({_,Attrs},Acc) ->
