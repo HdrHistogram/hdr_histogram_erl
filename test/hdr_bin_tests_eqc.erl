@@ -15,10 +15,11 @@ highest_trackable_value() ->
     choose(100000, 1000000).
 
 significant_figures() ->
-    choose(1, 3).
+    choose(1, 5).
 
 hist() ->
-    ?LET(HTV, highest_trackable_value(), ?SIZED(Size, hist(Size, HTV))).
+    ?LET(HTV, highest_trackable_value(),
+         ?SIZED(Size, hist(Size, HTV))).
 
 hist(Size, HTV) ->
     ?LAZY(oneof(
@@ -38,51 +39,47 @@ record(H, V) ->
     H.
 
 vals(H) ->
-    [hdr_histogram:min(H), hdr_histogram:mean(H), hdr_histogram:median(H), hdr_histogram:stddev(H), hdr_histogram:max(H),
-     hdr_histogram:percentile(H,99.0), hdr_histogram:percentile(H, 99.9999),
-     hdr_histogram:get_memory_size(H), hdr_histogram:get_total_count(H)].
+    maps:from_list(
+      [{min, hdr_histogram:min(H)},
+       {mean, hdr_histogram:mean(H)},
+       {median, hdr_histogram:median(H)},
+       {stddev, hdr_histogram:stddev(H)},
+       {max, hdr_histogram:max(H)},
+       {p99, hdr_histogram:percentile(H,99.0)},
+       {p99999, hdr_histogram:percentile(H, 99.9999)},
+       {mem_size, hdr_histogram:get_memory_size(H)},
+       {total_count, hdr_histogram:get_total_count(H)}]).
 
-prop_to_bin_none() ->
-    ?FORALL(HRaw, hist(),
+seed() ->
+    {largeint(), largeint(), largeint()}.
+
+to_bin_opts() ->
+    oneof([nc, {c, [{compression, elements([none, zlib])}]}]).
+               
+prop_to_bin() ->
+    ?FORALL({HRaw, COpts, Seed}, {hist(), to_bin_opts(), seed()},
             begin
+                random:seed(Seed),
                 H = eval(HRaw),
-                Bin = ?H:to_binary(H, [{compression, none}]),
-                {ok, H1} = ?H:from_binary(Bin),
-                V = vals(H),
-                V1 = vals(H1),
-                ?H:close(H),
-                ?H:close(H1),
-                ?WHENFAIL(io:format(user ,"~p => ~p =/= ~p~n", [HRaw, V, V1]),
-                          V == V1)
-            end).
+                Bin = case COpts of
+                          nc -> ?H:to_binary(H);
+                          {c, Opts} -> ?H:to_binary(H, Opts)
+                      end,
+                Res = try ?H:from_binary(Bin) of
+                          {error, Reason} -> {error, Reason};
+                          {ok, H1} ->
+                              V1 = vals(H1),
+                              ?H:close(H1),
+                              V1
+                catch
+                    Class:Err ->
+                        {exception, Class, Err}
+                end,
 
-prop_to_bin_zlib() ->
-    ?FORALL(HRaw, hist(),
-            begin
-                H = eval(HRaw),
-                Bin = ?H:to_binary(H),
-                {ok, H1} = ?H:from_binary(Bin),
                 V = vals(H),
-                V1 = vals(H1),
                 ?H:close(H),
-                ?H:close(H1),
-                ?WHENFAIL(io:format(user ,"~p => ~p =/= ~p~n", [HRaw, V, V1]),
-                          V == V1)
+                equals(V, Res)
             end).
-
-%% cmp([], [],_) ->
-%%     true;
-%% cmp([L1 | R1], [L2 | R2], D) ->
-%%     try erlang:abs(L1-L2) of
-%% 	R when R >= D ->
-%%             io:format(user, "~p - ~p = ~p > ~p~n", [L1, L2, R, D]),
-%%             false;
-%% 	_ -> cmp(R1, R2, D)
-%%     catch
-%%        _:_ ->
-%%            io:format(user, "~p ~p~n", [L1, L2]),
-%%            false
-%%     end.
 
 -endif.
 -endif.
