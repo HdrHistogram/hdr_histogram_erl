@@ -10,3 +10,4 @@ priv
 .eqc-info
 current_counterexample.eqc
 erl_crash.dump
+_build
