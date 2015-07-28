@@ -564,7 +564,7 @@ ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (argc != 1 ||
+    if (argc != 2 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         ctx->data == NULL ||
@@ -590,7 +590,7 @@ ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (argc != 1 ||
+    if (argc != 2 ||
         ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         ctx->data == NULL ||
