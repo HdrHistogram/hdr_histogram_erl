@@ -43,6 +43,36 @@
 
 #include <endian.h>
 
+/* GLIBC < 2.9 */
+#include <byteswap.h>
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+#  ifndef htobe32
+#    define htobe32(x) bswap_32 (x)
+#  endif
+#  ifndef be32toh
+#    define be32toh(x) bswap_32 (x)
+#  endif
+#  ifndef htobe64
+#    define htobe64(x) bswap_64 (x)
+#  endif
+#  ifndef be64toh
+#    define be64toh(x) bswap_64 (x)
+#   endif
+# else
+#  ifndef htobe32
+#    define htobe32(x) (x)
+#  endif
+#  ifndef be32toh
+#    define be32toh(x) (x)
+#  endif
+#  ifndef htobe64
+#    define htobe64(x) (x)
+#  endif
+#  ifndef be64toh
+#    define be64toh(x) (x)
+#   endif
+# endif
+
 #elif __sun__
 
 #include "byteorder.h"
