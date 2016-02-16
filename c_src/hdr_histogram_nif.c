@@ -633,7 +633,7 @@ ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
-    if (ctx_type != NULL ||
+    if (ctx_type == NULL ||
         !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
         ctx->data == NULL)
     {
