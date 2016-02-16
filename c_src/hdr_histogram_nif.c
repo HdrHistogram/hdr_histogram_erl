@@ -1411,7 +1411,7 @@ static void on_unload(ErlNifEnv* env, void *priv_data)
 {
     if (priv_data != NULL)
     {
-       free(priv_data);
+       enif_free(priv_data);
     }
 }
 
