@@ -730,6 +730,8 @@ ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
         return ATOM_OK;
     }
 
+    (void)fclose(stream);
+
     return make_error(env, "bad_hdr_histogram_nif_impl");
 }
 
@@ -763,6 +765,8 @@ ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         }
         return ATOM_OK;
     }
+
+    (void)fclose(stream);
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
 }
