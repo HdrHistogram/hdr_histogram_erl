@@ -457,7 +457,8 @@ int hdr_encode_compressed(
         int i = 0;
         while (i < counts_per_chunk && counts_index < h->counts_len)
         {
-            chunk[i++] = htobe64(h->counts[counts_index++]);
+            chunk[i++] = htobe64(h->counts[counts_index]);
+            counts_index++;
         }
 
         strm.next_in = (Bytef*) chunk;
