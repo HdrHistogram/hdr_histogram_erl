@@ -720,10 +720,10 @@ int hdr_log_write(
     }
 
     if (fprintf(
-        file, "%d.%d,%d.%d,%ld.0,%s\n",
+        file, "%d.%d,%d.%d,%lld.0,%s\n",
         (int) start_timestamp->tv_sec, (int) (start_timestamp->tv_nsec / 1000000),
         (int) end_timestamp->tv_sec, (int) (end_timestamp->tv_nsec / 1000000),
-        hdr_max(histogram),
+        (long long)hdr_max(histogram),
         encoded_histogram) < 0)
     {
         result = EIO;

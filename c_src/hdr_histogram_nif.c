@@ -210,7 +210,7 @@ static inline ErlNifResourceType* get_hi_ctx_type(ErlNifEnv* env)
 
 ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long highest_trackable_value = 0;
+    int64_t highest_trackable_value = 0;
     int significant_figures = 0;
     if (argc != 2 ||
         !enif_get_int64(env, argv[0], &highest_trackable_value) ||
@@ -261,7 +261,7 @@ ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
    
     if (ctx != NULL)
     {
-        return enif_make_ulong(env,hdr_get_memory_size(ctx->data));
+        return enif_make_uint64(env,hdr_get_memory_size(ctx->data));
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -281,7 +281,7 @@ ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
    
     if (ctx != NULL)
     {
-        return enif_make_ulong(env,ctx->data->total_count);
+        return enif_make_uint64(env,ctx->data->total_count);
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -289,7 +289,7 @@ ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 
 ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long value = 0;
+    int64_t value = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -316,8 +316,8 @@ ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long value = 0;
-    long expected_interval = 0;
+    int64_t value = 0;
+    int64_t expected_interval = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -345,8 +345,8 @@ ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
 ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long value = 0;
-    long count = 0;
+    int64_t value = 0;
+    int64_t count = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -390,7 +390,7 @@ ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
    
     if (ctx != NULL)
     {
-        return enif_make_long(env, hdr_add(ctx->data, from->data));
+        return enif_make_int64(env, hdr_add(ctx->data, from->data));
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -411,7 +411,7 @@ ERL_NIF_TERM _hh_min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
    
     if (ctx != NULL)
     {
-        return enif_make_long(env, hdr_min(ctx->data));
+        return enif_make_int64(env, hdr_min(ctx->data));
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -434,11 +434,11 @@ ERL_NIF_TERM _hh_max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     {
         if (ctx->data->total_count == 0)
         {
-            return enif_make_long(env, 0);
+            return enif_make_int64(env, 0);
         }
         else
         {
-            return enif_make_long(env, hdr_max(ctx->data));
+            return enif_make_int64(env, hdr_max(ctx->data));
         }
     }
 
@@ -585,8 +585,8 @@ ERL_NIF_TERM _hh_percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long a = 0;
-    long b = 0;
+    int64_t a = 0;
+    int64_t b = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -611,7 +611,7 @@ ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long value = 0;
+    int64_t value = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -626,7 +626,7 @@ ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
    
     if (ctx != NULL)
     {
-        return enif_make_long(
+        return enif_make_int64(
             env,
             hdr_lowest_equivalent_value(ctx->data, value)
         );
@@ -637,7 +637,7 @@ ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
 ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    long value = 0;
+    int64_t value = 0;
     hh_ctx_t* ctx = NULL;
 
     ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
@@ -652,7 +652,7 @@ ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
    
     if (ctx != NULL)
     {
-        return enif_make_long(env, hdr_count_at_value(ctx->data, value));
+        return enif_make_int64(env, hdr_count_at_value(ctx->data, value));
     }
 
     return make_error(env, "bad_hdr_histogram_nif_impl");
@@ -1145,22 +1145,22 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
                           ATOM_SUB_BUCKET_IDX,
-                          enif_make_long(env,sdx)),
+                          enif_make_int64(env,sdx)),
                       enif_make_tuple2(env,
                           ATOM_VAL_FROM_IDX,
-                          enif_make_long(env,val)),
+                          enif_make_int64(env,val)),
                       enif_make_tuple2(env,
                           ATOM_VAL_AT_IDX,
-                          enif_make_long(env,cat)),
+                          enif_make_int64(env,cat)),
                       enif_make_tuple2(env,
                           ATOM_COUNT_AT_IDX,
-                          enif_make_long(env,cto)),
+                          enif_make_int64(env,cto)),
                       enif_make_tuple2(env,
                           ATOM_HIGHEST_EQUIV_VAL,
-                          enif_make_long(env,heq)),
+                          enif_make_int64(env,heq)),
                       enif_make_tuple2(env,
                           ATOM_STEP_COUNT,
-                          enif_make_long(env,stp))));
+                          enif_make_int64(env,stp))));
             }
         }
     }
@@ -1193,31 +1193,31 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
                           ATOM_SUB_BUCKET_IDX,
-                          enif_make_long(env,sdx)),
+                          enif_make_int64(env,sdx)),
                       enif_make_tuple2(env,
                           ATOM_VAL_FROM_IDX,
-                          enif_make_long(env,val)),
+                          enif_make_int64(env,val)),
                       enif_make_tuple2(env,
                           ATOM_VAL_AT_IDX,
-                          enif_make_long(env,cat)),
+                          enif_make_int64(env,cat)),
                       enif_make_tuple2(env,
                           ATOM_COUNT_AT_IDX,
-                          enif_make_long(env,cto)),
+                          enif_make_int64(env,cto)),
                       enif_make_tuple2(env,
                           ATOM_HIGHEST_EQUIV_VAL,
-                          enif_make_long(env,heq)),
+                          enif_make_int64(env,heq)),
                       enif_make_tuple2(env,
                           ATOM_VAL_UNITS_PER_BUCKET,
                           enif_make_int(env,vub)),
                       enif_make_tuple2(env,
                           ATOM_STEP_COUNT,
-                          enif_make_long(env,stp)),
+                          enif_make_int64(env,stp)),
                       enif_make_tuple2(env,
                           ATOM_NEXT_VAL_REP_LVL,
-                          enif_make_long(env,nvl)),
+                          enif_make_int64(env,nvl)),
                       enif_make_tuple2(env,
                           ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV,
-                          enif_make_long(env,nve))));
+                          enif_make_int64(env,nve))));
             }
         }
     }
@@ -1251,34 +1251,34 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
                           ATOM_SUB_BUCKET_IDX,
-                          enif_make_long(env,sdx)),
+                          enif_make_int64(env,sdx)),
                       enif_make_tuple2(env,
                           ATOM_VAL_FROM_IDX,
-                          enif_make_long(env,val)),
+                          enif_make_int64(env,val)),
                       enif_make_tuple2(env,
                           ATOM_VAL_AT_IDX,
-                          enif_make_long(env,cat)),
+                          enif_make_int64(env,cat)),
                       enif_make_tuple2(env,
                           ATOM_COUNT_AT_IDX,
-                          enif_make_long(env,cto)),
+                          enif_make_int64(env,cto)),
                       enif_make_tuple2(env,
                           ATOM_HIGHEST_EQUIV_VAL,
-                          enif_make_long(env,heq)),
+                          enif_make_int64(env,heq)),
                       enif_make_tuple2(env,
                           ATOM_VAL_UNITS_FIRST_BUCKET,
                           enif_make_int(env,vfb)),
                       enif_make_tuple2(env,
                           ATOM_STEP_COUNT,
-                          enif_make_long(env,stp)),
+                          enif_make_int64(env,stp)),
                       enif_make_tuple2(env,
                           ATOM_LOG_BASE,
                           enif_make_double(env,lgb)),
                       enif_make_tuple2(env,
                           ATOM_NEXT_VAL_REP_LVL,
-                          enif_make_long(env,nvl)),
+                          enif_make_int64(env,nvl)),
                       enif_make_tuple2(env,
                           ATOM_NEXT_VAL_REP_LVL_LOW_EQUIV,
-                          enif_make_long(env,nve))));
+                          enif_make_int64(env,nve))));
             }
         }
     }
@@ -1311,19 +1311,19 @@ ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
                           enif_make_int(env,bdx)),
                       enif_make_tuple2(env,
                           ATOM_SUB_BUCKET_IDX,
-                          enif_make_long(env,sdx)),
+                          enif_make_int64(env,sdx)),
                       enif_make_tuple2(env,
                           ATOM_VAL_FROM_IDX,
-                          enif_make_long(env,val)),
+                          enif_make_int64(env,val)),
                       enif_make_tuple2(env,
                           ATOM_VAL_AT_IDX,
-                          enif_make_long(env,cat)),
+                          enif_make_int64(env,cat)),
                       enif_make_tuple2(env,
                           ATOM_COUNT_AT_IDX,
-                          enif_make_long(env,cto)),
+                          enif_make_int64(env,cto)),
                       enif_make_tuple2(env,
                           ATOM_HIGHEST_EQUIV_VAL,
-                          enif_make_long(env,heq)),
+                          enif_make_int64(env,heq)),
                       enif_make_tuple2(env,
                           ATOM_SEEN_LAST_VAL,
                           enif_make_atom(env,slv ? "true" : "false")),
