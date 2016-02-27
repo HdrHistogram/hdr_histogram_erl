@@ -130,6 +130,57 @@ static inline ERL_NIF_TERM make_error(ErlNifEnv* env, const char* text)
     );
 }
 
+ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_get_memory_size(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_get_total_count(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_record(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_record_corrected(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_record_many(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_min(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_max(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_mean(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_median(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_stddev(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_percentile(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_same(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_lowest_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_count_at(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_print_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_print_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_log_classic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_log_csv(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_from_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hh_to_binary_uncompressed(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+
+ERL_NIF_TERM _hi_open(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hi_next(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+ERL_NIF_TERM _hi_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+
+typedef struct
+{
+    int linear_value_units_per_bucket;
+    int log_value_units_first_bucket;
+    double log_base;
+    int percentile_ticks_per_half_distance;
+} hi_opts_t;
+
+typedef struct
+{
+    uint32_t type;
+    hi_opts_t* opts;
+    void* iter;
+} hi_ctx_t;
+
+ERL_NIF_TERM parse_opt(ErlNifEnv* env, ERL_NIF_TERM e, hi_opts_t* o);
+ERL_NIF_TERM parse_opts(ErlNifEnv* env, ERL_NIF_TERM list, hi_opts_t* acc,
+        ERL_NIF_TERM(*parse_opt)(ErlNifEnv*, ERL_NIF_TERM, void* acc));
+
 static inline double round_to_significant_figures(double value, int figures)
 {
     // This function does not handle values of 0 very well it will return inf
@@ -872,21 +923,6 @@ ERL_NIF_TERM _hh_to_binary_uncompressed(ErlNifEnv* env, int argc, const ERL_NIF_
 #define HDR_ITER_LIN 2
 #define HDR_ITER_LOG 4
 #define HDR_ITER_PCT 8
-
-typedef struct
-{
-    int linear_value_units_per_bucket;
-    int log_value_units_first_bucket;
-    double log_base;
-    int percentile_ticks_per_half_distance;
-} hi_opts_t;
-
-typedef struct
-{
-    uint32_t type;
-    hi_opts_t* opts;
-    void* iter;
-} hi_ctx_t;
 
 ERL_NIF_TERM parse_opts(
     ErlNifEnv* env,
