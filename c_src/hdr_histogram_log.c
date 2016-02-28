@@ -94,6 +94,17 @@
 enum zero_strategy { ZERO_ALL, ZERO_NONE };
 
 int realloc_buffer(
+    void** buffer, size_t nmemb, size_t size, enum zero_strategy zeroing);
+int null_trailing_whitespace(char* s, int len);
+void base64_encode_block_pad(const uint8_t* input, char* output, int pad);
+void base64_encode_block(const uint8_t* input, char* output);
+int base64_encode(
+    const uint8_t* input, size_t input_len, char* output, size_t output_len);
+void base64_decode_block(const char* input, uint8_t* output);
+int base64_decode(
+    const char* input, size_t input_len, uint8_t* output, size_t output_len);
+
+int realloc_buffer(
     void** buffer, size_t nmemb, size_t size, enum zero_strategy zeroing)
 {
     int len = nmemb * size;
@@ -446,7 +457,8 @@ int hdr_encode_compressed(
         int i = 0;
         while (i < counts_per_chunk && counts_index < h->counts_len)
         {
-            chunk[i++] = htobe64(h->counts[counts_index++]);
+            chunk[i++] = htobe64(h->counts[counts_index]);
+            counts_index++;
         }
 
         strm.next_in = (Bytef*) chunk;
@@ -708,10 +720,10 @@ int hdr_log_write(
     }
 
     if (fprintf(
-        file, "%d.%d,%d.%d,%ld.0,%s\n",
+        file, "%d.%d,%d.%d,%lld.0,%s\n",
         (int) start_timestamp->tv_sec, (int) (start_timestamp->tv_nsec / 1000000),
         (int) end_timestamp->tv_sec, (int) (end_timestamp->tv_nsec / 1000000),
-        hdr_max(histogram),
+        (long long)hdr_max(histogram),
         encoded_histogram) < 0)
     {
         result = EIO;

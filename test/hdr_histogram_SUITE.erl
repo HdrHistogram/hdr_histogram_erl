@@ -97,10 +97,6 @@ init_per_group(_GroupName, Config) ->
     [{raw,Raw},{cor,Cor}|Config].
 
 end_per_group(_GroupName, Config) ->
-    Raw = ?config(raw,Config),
-    Cor = ?config(cor,Config),
-    hdr_histogram:close(Raw),
-    hdr_histogram:close(Cor),
     Config.
 
 init_per_testcase(_TestCase, Config) ->
