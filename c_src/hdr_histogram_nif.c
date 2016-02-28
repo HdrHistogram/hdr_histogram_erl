@@ -1041,7 +1041,10 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         return enif_make_badarg(env);
     }
 
-    opts = (hi_opts_t *)enif_alloc(sizeof(hi_opts_t));
+    opts = enif_alloc(sizeof(hi_opts_t));
+    if (!opts) {
+        return make_error(env, "not_enough_memory");
+    }
     parse_opts(env, argv[2], opts, (void *)parse_opt);
     uint32_t iterator_type = ctx->type;
 
@@ -1051,6 +1054,9 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     {
         struct hdr_recorded_iter * iter =
             enif_alloc(sizeof(struct hdr_recorded_iter));
+        if (!iter) {
+            return make_error(env, "not_enough_memory");
+        }
         hdr_recorded_iter_init(iter, hdr->data);
         it = iter;
     }
@@ -1063,6 +1069,9 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         }
         struct hdr_linear_iter * iter =
             enif_alloc(sizeof(struct hdr_linear_iter));
+        if (!iter) {
+            return make_error(env, "not_enough_memory");
+        }
         hdr_linear_iter_init(
             iter,
             hdr->data,
@@ -1082,6 +1091,9 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         }
         struct hdr_log_iter * iter =
             enif_alloc(sizeof(struct hdr_log_iter));
+        if (!iter) {
+            return make_error(env, "not_enough_memory");
+        }
         hdr_log_iter_init(
             iter,
             hdr->data,
@@ -1098,6 +1110,9 @@ ERL_NIF_TERM _hi_init(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
         }
         struct hdr_percentile_iter * iter =
             enif_alloc(sizeof(struct hdr_percentile_iter));
+        if (!iter) {
+            return make_error(env, "not_enough_memory");
+        }
         hdr_percentile_iter_init(
             iter,
             hdr->data,
