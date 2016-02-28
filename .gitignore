@@ -11,3 +11,4 @@ priv
 current_counterexample.eqc
 erl_crash.dump
 _build
+*.hgrm
