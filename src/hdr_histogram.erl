@@ -3,11 +3,11 @@
 %% @version 0.2.0
 %%
 %% @doc
-%% 
+%%
 %% The HDR histogram library is an Erlang native interface function wrapper of
 %% Mike Barker's C port of Gil Tene's HDR Histogram utility.
 %%
-%% 
+%%
 %% A high dynamic range histogram is one that supports recording and analyzing
 %% sampled data points across a configurable range with configurable precision
 %% within that range. The precision is expressed as a number of significant
@@ -114,7 +114,7 @@ init() ->
                 Dir = code:which(?MODULE),
                 filename:join([filename:dirname(Dir),"..","priv"]);
             Dir -> Dir
-        end, atom_to_list(?MODULE) ++ "_nif"),
+        end, atom_to_list(?MODULE)),
     erlang:load_nif(SoName, 0).
 
 -spec open(HighestTrackableValue,SignificantFigures)
@@ -298,7 +298,7 @@ close(_Ref) ->
 -spec from_binary(Binary) -> {ok,Ref} | {error,term()} when
     Binary :: binary(),
     Ref :: ref().
-%% @doc Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used 
+%% @doc Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used
 from_binary(_Binary) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
