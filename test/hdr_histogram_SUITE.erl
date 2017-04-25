@@ -30,6 +30,7 @@
 -export([t_counter_example_stddev/1]).
 -export([t_issue_004/1]).
 -export([t_issue_013/1]).
+-export([t_issue_021/1]).
 -export([t_unique_resource_types/1]).
 -export([t_use_after_close/1]).
 
@@ -61,7 +62,7 @@ groups() ->
       , t_hdr_reset
       , t_hdr_close
       , t_hdr_binary
-      , t_hdr_binary_nc %% Commented out. Issues arize when used with CT
+      , t_hdr_binary_nc
     ]},
      {iter, [], [
         t_iter_recorded
@@ -76,6 +77,7 @@ groups() ->
     {regression, [], [
         t_issue_004,
         t_issue_013,
+        t_issue_021,
         t_unique_resource_types,
         t_use_after_close
     ]}].
@@ -212,11 +214,11 @@ t_iter_recorded(Config) ->
     Raw = ?config(raw,Config),
     Cor = ?config(cor,Config),
 
-  {ok,RawIter} = hdr_iter:open(record, Raw, []), 
+  {ok,RawIter} = hdr_iter:open(record, Raw, []),
   RawStepCounts = hdr_iter:each(RawIter, step_counts(), []),
   hdr_iter:close(RawIter),
 
-  {ok,CorIter} = hdr_iter:open(record, Cor, []), 
+  {ok,CorIter} = hdr_iter:open(record, Cor, []),
   CorStepCounts = hdr_iter:each(CorIter, step_counts(), []),
   hdr_iter:close(CorIter),
 
@@ -232,11 +234,11 @@ t_iter_linear(Config) ->
     Raw = ?config(raw,Config),
     Cor = ?config(cor,Config),
 
-  {ok,RawIter} = hdr_iter:open(linear, Raw, [{linear_value_unit,10000}]), 
+  {ok,RawIter} = hdr_iter:open(linear, Raw, [{linear_value_unit,10000}]),
   RawStepCounts = hdr_iter:each(RawIter,step_counts(), []),
   hdr_iter:close(RawIter),
 
-  {ok,CorIter} = hdr_iter:open(linear, Cor, [{linear_value_unit,10000}]), 
+  {ok,CorIter} = hdr_iter:open(linear, Cor, [{linear_value_unit,10000}]),
   CorStepCounts = hdr_iter:each(CorIter,step_counts(), []),
   hdr_iter:close(CorIter),
 
@@ -248,11 +250,11 @@ t_iter_logarithmic(Config) ->
     Raw = ?config(raw,Config),
     Cor = ?config(cor,Config),
 
-  {ok,RawIter} = hdr_iter:open(logarithmic, Raw, [{log_value_unit,100},{log_base,10.0}]), 
+  {ok,RawIter} = hdr_iter:open(logarithmic, Raw, [{log_value_unit,100},{log_base,10.0}]),
   RawStepCounts = hdr_iter:each(RawIter,accum_steps(), 0),
   hdr_iter:close(RawIter),
 
-  {ok,CorIter} = hdr_iter:open(logarithmic, Cor, [{log_value_unit,100},{log_base,10.0}]), 
+  {ok,CorIter} = hdr_iter:open(logarithmic, Cor, [{log_value_unit,100},{log_base,10.0}]),
   CorStepCounts = hdr_iter:each(CorIter,accum_steps(), 0),
   hdr_iter:close(CorIter),
 
@@ -264,11 +266,11 @@ t_iter_percentile(Config) ->
     Raw = ?config(raw,Config),
     Cor = ?config(cor,Config),
 
-  {ok,RawIter} = hdr_iter:open(percentile, Raw, [{percentile_half_ticks,20}]), 
+  {ok,RawIter} = hdr_iter:open(percentile, Raw, [{percentile_half_ticks,20}]),
   RawStepCounts = hdr_iter:each(RawIter,count(), 0),
   hdr_iter:close(RawIter),
 
-  {ok,CorIter} = hdr_iter:open(percentile, Cor, [{percentile_half_ticks,20}]), 
+  {ok,CorIter} = hdr_iter:open(percentile, Cor, [{percentile_half_ticks,20}]),
   CorStepCounts = hdr_iter:each(CorIter,count(), 0),
   hdr_iter:close(CorIter),
 
@@ -304,7 +306,13 @@ t_issue_013(_Config) ->
     end || X <- lists:seq(0,10) ],
     {error, value_out_of_range} = hdr_histogram:record(R, -1),
     {error, value_out_of_range} = hdr_histogram:record(R, 11).
-    
+
+t_issue_021(_Config) ->
+    {ok, H1} = hdr_histogram:open(524287, 5),
+    Bin = hdr_histogram:to_binary(H1),
+    {ok, H2} = hdr_histogram:from_binary(Bin),
+    Bin = hdr_histogram:to_binary(H2).
+
 t_unique_resource_types(_Config) ->
     {ok, H} = hdr_histogram:open(10, 1),
     {ok, I} = hdr_iter:open(record, H, []),

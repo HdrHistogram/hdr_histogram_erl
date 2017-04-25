@@ -452,7 +452,7 @@ int hdr_encode_compressed(
             len = new_len;
 
             // Flush the zlib stream.  Breaks without this.
-            if (deflate(&strm, Z_SYNC_FLUSH) != Z_OK)
+            if (strm.avail_in > 0 && deflate(&strm, Z_SYNC_FLUSH) != Z_OK)
             {
                 FAIL_AND_CLEANUP(cleanup, result, HDR_DEFLATE_FAIL);
             }
