@@ -281,6 +281,31 @@ int64_t hdr_add(struct hdr_histogram* h, struct hdr_histogram* from)
     return dropped;
 }
 
+int64_t hdr_rotate(struct hdr_histogram* h, struct hdr_histogram* to, struct hdr_histogram* diff)
+{
+    struct hdr_recorded_iter iter;
+    hdr_recorded_iter_init(&iter, h);
+    int64_t dropped = 0;
+
+    while (hdr_recorded_iter_next(&iter))
+    {
+        int64_t value = iter.iter.value_from_index;
+        int64_t count = iter.iter.count_at_index;
+
+        if (value >= 0 && value <= to->highest_trackable_value)
+        {
+            int64_t diff_count = count - hdr_count_at_value(to, value);
+            hdr_record_values(to, value, diff_count);
+            hdr_record_values(diff, value, diff_count);
+        }
+        else
+        {
+          dropped++;
+        }
+    }
+
+    return dropped;
+}
 
 // ##     ##    ###    ##       ##     ## ########  ######
 // ##     ##   ## ##   ##       ##     ## ##       ##    ##

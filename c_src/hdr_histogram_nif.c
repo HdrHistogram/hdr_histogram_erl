@@ -792,6 +792,55 @@ ERL_NIF_TERM _hh_reset(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return make_error(env, "bad_hdr_histogram_nif_impl");
 }
 
+ERL_NIF_TERM _hh_rotate(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    hh_ctx_t* ctx = NULL;
+    hh_ctx_t* to = NULL;
+    ErlNifBinary target;
+
+    ErlNifResourceType* ctx_type = get_hh_ctx_type(env);
+    if (argc != 2 ||
+        ctx_type == NULL ||
+        !enif_get_resource(env, argv[0], ctx_type, (void **)&ctx) ||
+        ctx->data == NULL ||
+        !enif_get_resource(env, argv[1], ctx_type, (void **)&to) ||
+        to->data == NULL)
+    {
+        return enif_make_badarg(env);
+    }
+
+    hdr_histogram_t* diff_histogram;
+    int rc = 0;
+    rc = hdr_alloc(ctx->highest_trackable_value, ctx->significant_figures, &diff_histogram);
+
+    if (ENOMEM == rc)
+    {
+        return make_error(env, "not_enough_memory");
+    }
+
+    hdr_rotate(ctx->data, to->data, diff_histogram);
+
+    int size = 0;
+    uint8_t* data = NULL;
+    int success = hdr_encode_uncompressed(diff_histogram, &data, &size);
+
+    if (!enif_alloc_binary(size, &target))
+    {
+        return make_error(env, "bad_hdr_binary_alloc");
+    }
+    target.size = size;
+    memcpy(target.data, data, size);
+    free(data);
+    free(diff_histogram);
+
+    if (success != 0)
+    {
+        return make_error(env, "bad_hdr_binary");
+    }
+
+    return enif_make_binary(env, &target);
+}
+
 ERL_NIF_TERM _hh_close(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     hh_ctx_t* ctx = NULL;
@@ -1494,6 +1543,7 @@ static ErlNifFunc nif_funcs[] =
     {"log_classic", 2, _hh_log_classic},
     {"log_csv", 2, _hh_log_csv},
     {"reset", 1, _hh_reset},
+    {"rotate", 2, _hh_rotate},
     {"close", 1, _hh_close},
     {"from_binary", 1, _hh_from_binary},
     {"to_binary", 1, _hh_to_binary},

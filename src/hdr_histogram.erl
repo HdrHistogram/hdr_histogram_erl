@@ -94,6 +94,7 @@
 -export([print/2]).
 -export([log/3]).
 -export([reset/1]).
+-export([rotate/2]).
 -export([close/1]).
 -export([from_binary/1]).
 -export([to_binary/1]).
@@ -287,6 +288,13 @@ log_csv(_Ref,_FileName) ->
     Ref :: ref().
 %% @doc Reset the memory backing this HDR histogram instance and zero results
 reset(_Ref) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
+-spec rotate(Ref, To) -> Diff :: binary() | {error, term()} when
+    Ref :: ref(),
+    To :: ref().
+%% @doc Copy data from Ref to To and return the difference as binary
+rotate(_Ref, _To) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
 -spec close(Ref) -> ok | {error,term()} when
