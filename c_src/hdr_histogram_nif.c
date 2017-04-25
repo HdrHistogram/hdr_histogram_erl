@@ -874,6 +874,11 @@ ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     uint8_t* data = NULL;
     int success = hdr_encode_compressed(ctx->data, &data, &size);
 
+    if (success != 0)
+    {
+        return make_error(env, "bad_hdr_binary");
+    }
+
     if (!enif_alloc_binary(size, &target))
     {
         return make_error(env, "bad_hdr_binary_alloc");
@@ -881,11 +886,6 @@ ERL_NIF_TERM _hh_to_binary(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     target.size = size;
     memcpy(target.data,data,size);
     free(data);
-
-    if (success != 0)
-    {
-        return make_error(env, "bad_hdr_binary");
-    }
 
     return enif_make_binary(env, &target);
 }
