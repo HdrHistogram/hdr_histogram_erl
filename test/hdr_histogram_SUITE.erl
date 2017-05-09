@@ -30,6 +30,7 @@
 -export([t_counter_example_stddev/1]).
 -export([t_issue_004/1]).
 -export([t_issue_013/1]).
+-export([t_issue_021/1]).
 -export([t_unique_resource_types/1]).
 -export([t_use_after_close/1]).
 
@@ -61,7 +62,7 @@ groups() ->
       , t_hdr_reset
       , t_hdr_close
       , t_hdr_binary
-      , t_hdr_binary_nc %% Commented out. Issues arize when used with CT
+      , t_hdr_binary_nc
     ]},
      {iter, [], [
         t_iter_recorded
@@ -76,6 +77,7 @@ groups() ->
     {regression, [], [
         t_issue_004,
         t_issue_013,
+        t_issue_021,
         t_unique_resource_types,
         t_use_after_close
     ]}].
@@ -304,6 +306,13 @@ t_issue_013(_Config) ->
     end || X <- lists:seq(0,10) ],
     {error, value_out_of_range} = hdr_histogram:record(R, -1),
     {error, value_out_of_range} = hdr_histogram:record(R, 11).
+
+t_issue_021(_Config) ->
+    {ok, H1} = hdr_histogram:open(524287, 5),
+    Bin = hdr_histogram:to_binary(H1),
+    {ok, H2} = hdr_histogram:from_binary(Bin),
+    Bin = hdr_histogram:to_binary(H2).
+
     
 t_unique_resource_types(_Config) ->
     {ok, H} = hdr_histogram:open(10, 1),
