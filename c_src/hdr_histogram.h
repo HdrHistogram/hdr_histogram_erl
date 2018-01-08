@@ -141,6 +141,11 @@ bool hdr_record_corrected_value(struct hdr_histogram* h, int64_t value, int64_t 
  */
 int64_t hdr_add(struct hdr_histogram* h, struct hdr_histogram* from);
 
+/**
+ * rotate all the vaalue from 'from' to 'to' and return the difference
+ */
+int64_t hdr_rotate(struct hdr_histogram* h, struct hdr_histogram* to, struct hdr_histogram* diff);
+
 int64_t hdr_min(struct hdr_histogram* h);
 int64_t hdr_max(struct hdr_histogram* h);
 int64_t hdr_value_at_percentile(struct hdr_histogram* h, double percentile);

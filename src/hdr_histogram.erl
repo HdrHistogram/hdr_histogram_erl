@@ -3,11 +3,11 @@
 %% @version 0.2.0
 %%
 %% @doc
-%% 
+%%
 %% The HDR histogram library is an Erlang native interface function wrapper of
 %% Mike Barker's C port of Gil Tene's HDR Histogram utility.
 %%
-%% 
+%%
 %% A high dynamic range histogram is one that supports recording and analyzing
 %% sampled data points across a configurable range with configurable precision
 %% within that range. The precision is expressed as a number of significant
@@ -94,6 +94,7 @@
 -export([print/2]).
 -export([log/3]).
 -export([reset/1]).
+-export([rotate/2]).
 -export([close/1]).
 -export([from_binary/1]).
 -export([to_binary/1]).
@@ -114,7 +115,7 @@ init() ->
                 Dir = code:which(?MODULE),
                 filename:join([filename:dirname(Dir),"..","priv"]);
             Dir -> Dir
-        end, atom_to_list(?MODULE) ++ "_nif"),
+        end, atom_to_list(?MODULE)),
     erlang:load_nif(SoName, 0).
 
 -spec open(HighestTrackableValue,SignificantFigures)
@@ -289,6 +290,13 @@ log_csv(_Ref,_FileName) ->
 reset(_Ref) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
+-spec rotate(Ref, To) -> Diff :: binary() | {error, term()} when
+    Ref :: ref(),
+    To :: ref().
+%% @doc Copy data from Ref to To and return the difference as binary
+rotate(_Ref, _To) ->
+    erlang:nif_error({nif_not_loaded, ?MODULE}).
+
 -spec close(Ref) -> ok | {error,term()} when
     Ref :: ref().
 %% @doc Close this HDR histogram instance and free any system resources
@@ -298,7 +306,7 @@ close(_Ref) ->
 -spec from_binary(Binary) -> {ok,Ref} | {error,term()} when
     Binary :: binary(),
     Ref :: ref().
-%% @doc Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used 
+%% @doc Take a snapshot of HDR histogram internal state as a compressed binary and hydrate/open a reference. The reference SHOULD be closed when no longer needed to reclaim the memory used
 from_binary(_Binary) ->
     erlang:nif_error({nif_not_loaded, ?MODULE}).
 
