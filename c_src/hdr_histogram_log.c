@@ -73,6 +73,10 @@
 #   endif
 # endif
 
+#elif defined(__FreeBSD__) || defined(__NetBSD__) 
+
+# include <sys/endian.h>
+
 #elif __sun__
 
 #include "byteorder.h"
