@@ -8,9 +8,12 @@
 {application, hdr_histogram,
  [
   {description, "High Dynamic Range Histogram Erlang/OTP library"},
-  {vsn, "0.2.0"},
+  {vsn, git},
   {modules, [ hdr_histogram ]},
   {registered, []},
   {applications, [ kernel, stdlib ]},
-  {env, []}
+  {env, []},
+
+  {licenses, ["BSD-2-Clause"]},
+  {links, [{"GitHub", "https://github.com/HdrHistogram/hdr_histogram_erl"}]}
  ]}.

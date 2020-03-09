@@ -389,6 +389,6 @@ load(N,{Raw,Cor}) ->
 
 cmp(L1,L2,D) ->
     case erlang:abs(L1-L2) < D of
-	false -> throw({not_same, L1, L2, D, erlang:get_stacktrace()});
+	false -> throw({not_same, L1, L2, D});
 	true -> true
     end.

@@ -1,9 +1,0 @@
-language: erlang
-otp_release:
-  - 20.2
-  - 17.3
-  - 17.1
-  - 17.0
-install:
-  - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
-script: ./rebar3 ct
