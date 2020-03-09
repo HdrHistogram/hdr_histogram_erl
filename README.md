@@ -1,6 +1,6 @@
 # hdr_histogram_erl
 
-![Common Test](https://github.com/hdrhistogram/hdr_histogram_erl/workflows/Common%20Test/badge.svg) [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/HdrHistogram/HdrHistogram?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl.png" alt="Build Status" width="100px" height="18px">](http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl)
+![Common Test](https://github.com/hdrhistogram/hdr_histogram_erl/workflows/Common%20Test/badge.svg) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/HdrHistogram/HdrHistogram?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [<img src="http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl.png" alt="Build Status" width="100px" height="18px">](http://quickcheck-ci.com/p/hdrhistogram/hdr_histogram_erl)
 
 ## Description ##
 
